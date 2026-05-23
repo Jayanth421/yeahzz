@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://lumina-digital-agency.lovable.app/sitemap.xml
