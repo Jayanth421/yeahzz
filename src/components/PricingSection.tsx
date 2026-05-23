@@ -3,7 +3,7 @@ import { Check, Sparkles } from "lucide-react";
 const plans = [
   {
     name: "Starter",
-    price: "₹9,999",
+    price: "₹2,999",
     description: "Perfect for small businesses and startups",
     features: [
       "1–3 Page Website",
@@ -18,7 +18,7 @@ const plans = [
   },
   {
     name: "Professional",
-    price: "₹24,999",
+    price: "₹5,000",
     description: "Ideal for growing businesses",
     features: [
       "5–10 Page Website",
@@ -34,7 +34,7 @@ const plans = [
   },
   {
     name: "Enterprise",
-    price: "₹59,999",
+    price: "₹9,999",
     description: "For businesses that need it all",
     features: [
       "Fully Custom Website/Web App",
