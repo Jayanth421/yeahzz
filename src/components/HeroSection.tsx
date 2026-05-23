@@ -47,7 +47,7 @@ export default function HeroSection() {
                 <Play className="size-4" />
                 View Portfolio
               </a>
-            </ul>
+            </div>
           </div>
 
           {/* Right: Dashboard mockup */}

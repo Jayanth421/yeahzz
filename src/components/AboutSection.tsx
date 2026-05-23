@@ -113,7 +113,7 @@ export default function AboutSection() {
                   <div className="font-display text-3xl font-extrabold text-amber-400 mb-1">24/7</div>
                   <div className="text-[10px] uppercase tracking-widest text-muted-foreground">Support</div>
                 </div>
-              </a>
+              </div>
             </div>
           </div>
         </div>
