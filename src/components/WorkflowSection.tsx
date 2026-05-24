@@ -105,21 +105,31 @@ export default function WorkflowSection() {
         <div className="lg:hidden space-y-6">
           {steps.map((step, index) => {
             const Icon = step.icon;
+            const cardClasses = [
+              "neo-card-blue",
+              "neo-card-violet",
+              "neo-card-green",
+              "neo-card-yellow",
+              "neo-card-pink",
+              "neo-card-orange",
+            ];
+            const cardClass = cardClasses[index % cardClasses.length];
+
             return (
               <div
                 key={index}
-                className="flex gap-4 glass-card rounded-2xl p-6 glow-hover"
+                className={`flex gap-4 rounded-2xl p-6 transition-all duration-300 ${cardClass}`}
               >
                 <div className="flex-shrink-0">
                   <div
-                    className={`size-12 ${step.bg} rounded-xl flex items-center justify-center`}
+                    className={`size-12 ${step.bg} rounded-xl flex items-center justify-center border border-black/10`}
                   >
                     <Icon className={`size-5 ${step.color}`} />
                   </div>
                 </div>
                 <div>
                   <div className="flex items-center gap-2 mb-2">
-                    <span className="text-[10px] font-mono text-muted-foreground">
+                    <span className="text-[10px] font-mono text-muted-foreground font-bold">
                       STEP {index + 1}
                     </span>
                     <div className="flex-1 h-px bg-gradient-to-r from-neon-blue/30 to-transparent" />
@@ -127,7 +137,7 @@ export default function WorkflowSection() {
                   <h3 className="font-display text-lg font-bold mb-1">
                     {step.title}
                   </h3>
-                  <p className="text-sm text-muted-foreground leading-relaxed">
+                  <p className="text-xs font-mono text-muted-foreground leading-relaxed">
                     {step.description}
                   </p>
                 </div>

@@ -74,20 +74,30 @@ export default function WhyChooseUs() {
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {features.map((feature, index) => {
             const Icon = feature.icon;
+            const cardClasses = [
+              "neo-card-blue",
+              "neo-card-violet",
+              "neo-card-green",
+              "neo-card-yellow",
+              "neo-card-pink",
+              "neo-card-orange",
+            ];
+            const cardClass = cardClasses[index % cardClasses.length];
+
             return (
               <div
                 key={index}
-                className="group glass-card rounded-2xl p-8 hover:bg-white/[0.06] transition-all duration-300 glow-hover"
+                className={`group rounded-2xl p-8 transition-all duration-300 ${cardClass}`}
               >
                 <div
-                  className={`size-14 ${feature.bg} rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300`}
+                  className={`size-14 ${feature.bg} rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300 border border-black/10`}
                 >
                   <Icon className={`size-7 ${feature.color}`} />
                 </div>
-                <h3 className="font-display text-xl font-bold mb-3 group-hover:text-neon-blue transition-colors">
+                <h3 className="font-display text-xl font-bold mb-3 group-hover:text-neo-pink transition-colors">
                   {feature.title}
                 </h3>
-                <p className="text-sm text-muted-foreground leading-relaxed">
+                <p className="text-xs font-mono text-muted-foreground leading-relaxed">
                   {feature.description}
                 </p>
               </div>

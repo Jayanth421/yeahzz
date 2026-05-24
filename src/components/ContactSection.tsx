@@ -150,7 +150,7 @@ export default function ContactSection() {
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="grid sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="text-xs font-mono font-bold uppercase tracking-widest text-foreground mb-2 block">
+                    <label className="text-xs font-mono font-bold uppercase tracking-widest text-black mb-2 block">
                       Full Name
                     </label>
                     <input
@@ -160,12 +160,12 @@ export default function ContactSection() {
                       onChange={(e) =>
                         setForm({ ...form, name: e.target.value })
                       }
-                      className="w-full bg-white dark:bg-black/60 border-2 border-black rounded-xl p-4 text-sm text-foreground outline-none focus:bg-neo-cream focus:text-black transition-colors placeholder:text-muted-foreground/50 shadow-[2px_2px_0px_0px_#000] font-mono"
+                      className="w-full bg-black dark:bg-black border-2 border-black rounded-xl p-4 text-sm text-white outline-none focus:bg-neo-cream focus:text-black transition-colors placeholder:text-muted-white shadow-[2px_2px_0px_0px_#000] font-mono"
                       placeholder="John Doe"
                     />
                   </div>
                   <div>
-                    <label className="text-xs font-mono font-bold uppercase tracking-widest text-foreground mb-2 block">
+                    <label className="text-xs font-mono font-bold uppercase tracking-widest text-black mb-2 block">
                       Email
                     </label>
                     <input
@@ -175,7 +175,7 @@ export default function ContactSection() {
                       onChange={(e) =>
                         setForm({ ...form, email: e.target.value })
                       }
-                      className="w-full bg-white dark:bg-black/60 border-2 border-black rounded-xl p-4 text-sm text-foreground outline-none focus:bg-neo-cream focus:text-black transition-colors placeholder:text-muted-foreground/50 shadow-[2px_2px_0px_0px_#000] font-mono"
+                      className="w-full bg-black dark:bg-black/60 border-2 border-black rounded-xl p-4 text-sm text-foreground outline-none focus:bg-neo-cream focus:text-black transition-colors placeholder:text-muted-foreground shadow-[2px_2px_0px_0px_#000] font-mono"
                       placeholder="hello@example.com"
                     />
                   </div>
@@ -183,7 +183,7 @@ export default function ContactSection() {
 
                 <div className="grid sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="text-xs font-mono font-bold uppercase tracking-widest text-foreground mb-2 block">
+                    <label className="text-xs font-mono font-bold uppercase tracking-widest text-black mb-2 block">
                       Phone
                     </label>
                     <input
@@ -192,12 +192,12 @@ export default function ContactSection() {
                       onChange={(e) =>
                         setForm({ ...form, phone: e.target.value })
                       }
-                      className="w-full bg-white dark:bg-black/60 border-2 border-black rounded-xl p-4 text-sm text-foreground outline-none focus:bg-neo-cream focus:text-black transition-colors placeholder:text-muted-foreground/50 shadow-[2px_2px_0px_0px_#000] font-mono"
+                      className="w-full bg-black dark:bg-white border-2 border-black rounded-xl p-4 text-sm text-white outline-none focus:bg-neo-cream focus:text-black transition-colors placeholder:text-muted-regrounfod/50 shadow-[2px_2px_0px_0px_#000] font-mono"
                       placeholder="+91 9565656554"
                     />
                   </div>
                   <div>
-                    <label className="text-xs font-mono font-bold uppercase tracking-widest text-foreground mb-2 block">
+                    <label className="text-xs font-mono font-bold uppercase tracking-widest text-black mb-2 block">
                       Service Needed
                     </label>
                     <select
@@ -205,7 +205,7 @@ export default function ContactSection() {
                       onChange={(e) =>
                         setForm({ ...form, service: e.target.value })
                       }
-                      className="w-full bg-white dark:bg-black/60 border-2 border-black rounded-xl p-4 text-sm text-foreground outline-none focus:bg-neo-cream focus:text-black transition-colors shadow-[2px_2px_0px_0px_#000] font-mono"
+                      className="w-full bg-black dark:bg-black/60 border-2 border-black rounded-xl p-4 text-sm text-foreground outline-none focus:bg-neo-cream focus:text-black transition-colors shadow-[2px_2px_0px_0px_#000] font-mono"
                     >
                       <option value="">Select a service</option>
                       <option value="web">Web Development</option>
@@ -219,7 +219,7 @@ export default function ContactSection() {
                 </div>
 
                 <div>
-                  <label className="text-xs font-mono font-bold uppercase tracking-widest text-foreground mb-2 block">
+                  <label className="text-xs font-mono font-bold uppercase tracking-widest text-black mb-2 block">
                     Project Details
                   </label>
                   <textarea
@@ -228,7 +228,7 @@ export default function ContactSection() {
                     onChange={(e) =>
                       setForm({ ...form, message: e.target.value })
                     }
-                    className="w-full bg-white dark:bg-black/60 border-2 border-black rounded-xl p-4 text-sm text-foreground outline-none focus:bg-neo-cream focus:text-black transition-colors placeholder:text-muted-foreground/50 shadow-[2px_2px_0px_0px_#000] font-mono resize-none"
+                    className="w-full bg-black dark:bg-black/60 border-2 border-black rounded-xl p-4 text-sm text-foreground outline-none focus:bg-neo-cream focus:text-black transition-colors placeholder:text-muted-foreground shadow-[2px_2px_0px_0px_#000] font-mono resize-none"
                     placeholder="Tell us about your project..."
                   />
                 </div>

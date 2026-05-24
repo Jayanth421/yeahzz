@@ -77,41 +77,41 @@ export default function AboutSection() {
             </p>
 
             <div className="flex flex-wrap gap-4">
-              <div className="flex items-center gap-2 glass-card rounded-lg px-4 py-2">
-                <div className="size-2 rounded-full bg-neon-blue" />
-                <span className="text-sm font-medium">React & Next.js</span>
+              <div className="flex items-center gap-2 bg-card border-2 border-neo-blue rounded-lg px-4 py-2 shadow-[2px_2px_0px_0px_var(--color-neo-blue)]">
+                <div className="size-2 rounded-full bg-neo-blue animate-pulse" />
+                <span className="text-xs font-mono font-bold text-white">React & Next.js</span>
               </div>
-              <div className="flex items-center gap-2 glass-card rounded-lg px-4 py-2">
-                <div className="size-2 rounded-full bg-neon-purple" />
-                <span className="text-sm font-medium">Tailwind CSS</span>
+              <div className="flex items-center gap-2 bg-card border-2 border-neo-violet rounded-lg px-4 py-2 shadow-[2px_2px_0px_0px_var(--color-neo-violet)]">
+                <div className="size-2 rounded-full bg-neo-violet animate-pulse" />
+                <span className="text-xs font-mono font-bold text-white">Tailwind CSS</span>
               </div>
-              <div className="flex items-center gap-2 glass-card rounded-lg px-4 py-2">
-                <div className="size-2 rounded-full bg-emerald-400" />
-                <span className="text-sm font-medium">Node.js</span>
+              <div className="flex items-center gap-2 bg-card border-2 border-neo-green rounded-lg px-4 py-2 shadow-[2px_2px_0px_0px_var(--color-neo-green)]">
+                <div className="size-2 rounded-full bg-neo-green animate-pulse" />
+                <span className="text-xs font-mono font-bold text-white">Node.js</span>
               </div>
             </div>
           </div>
 
           {/* Visual area */}
           <div className="relative">
-            <div className="absolute -inset-4 bg-gradient-to-tr from-neon-blue/10 to-neon-purple/10 blur-2xl rounded-3xl pointer-events-none" />
-            <div className="glass-card-raised rounded-3xl p-8 relative overflow-hidden">
+            <div className="absolute -inset-4 bg-gradient-to-tr from-neo-blue/10 to-neo-violet/10 blur-2xl rounded-3xl pointer-events-none" />
+            <div className="border-3 border-foreground bg-black/40 rounded-3xl p-8 relative overflow-hidden shadow-[6px_6px_0px_0px_#000]">
               <div className="grid grid-cols-2 gap-4">
-                <div className="glass-card rounded-xl p-6 text-center">
-                  <div className="font-display text-3xl font-extrabold text-neon-blue mb-1">99.9%</div>
-                  <div className="text-[10px] uppercase tracking-widest text-muted-foreground">Uptime SLA</div>
+                <div className="neo-card-blue rounded-xl p-6 text-center">
+                  <div className="font-display text-3xl font-extrabold text-neo-blue mb-1">99.9%</div>
+                  <div className="text-[9px] uppercase tracking-widest text-muted-foreground font-mono font-bold">Uptime SLA</div>
                 </div>
-                <div className="glass-card rounded-xl p-6 text-center">
-                  <div className="font-display text-3xl font-extrabold text-neon-purple mb-1">&lt;1s</div>
-                  <div className="text-[10px] uppercase tracking-widest text-muted-foreground">Page Load</div>
+                <div className="neo-card-violet rounded-xl p-6 text-center">
+                  <div className="font-display text-3xl font-extrabold text-neo-violet mb-1">&lt;1s</div>
+                  <div className="text-[9px] uppercase tracking-widest text-muted-foreground font-mono font-bold">Page Load</div>
                 </div>
-                <div className="glass-card rounded-xl p-6 text-center">
-                  <div className="font-display text-3xl font-extrabold text-emerald-400 mb-1">A+</div>
-                  <div className="text-[10px] uppercase tracking-widest text-muted-foreground">SEO Score</div>
+                <div className="neo-card-green rounded-xl p-6 text-center">
+                  <div className="font-display text-3xl font-extrabold text-neo-green mb-1">A+</div>
+                  <div className="text-[9px] uppercase tracking-widest text-muted-foreground font-mono font-bold">SEO Score</div>
                 </div>
-                <div className="glass-card rounded-xl p-6 text-center">
-                  <div className="font-display text-3xl font-extrabold text-amber-400 mb-1">24/7</div>
-                  <div className="text-[10px] uppercase tracking-widest text-muted-foreground">Support</div>
+                <div className="neo-card-yellow rounded-xl p-6 text-center">
+                  <div className="font-display text-3xl font-extrabold text-neo-yellow mb-1">24/7</div>
+                  <div className="text-[9px] uppercase tracking-widest text-muted-foreground font-mono font-bold">Support</div>
                 </div>
               </div>
             </div>
@@ -119,7 +119,7 @@ export default function AboutSection() {
         </div>
 
         {/* Stats bar */}
-        <div className="glass-card-raised rounded-3xl p-8 sm:p-12">
+        <div className="border-3 border-foreground bg-card rounded-3xl p-8 sm:p-12 shadow-[6px_6px_0px_0px_#8B5CF6]">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 sm:gap-12">
             {stats.map((stat, index) => (
               <AnimatedCounter key={index} target={stat.value} suffix={stat.suffix} />

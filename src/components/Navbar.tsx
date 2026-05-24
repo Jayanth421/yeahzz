@@ -22,22 +22,19 @@ export default function Navbar() {
 
   return (
     <nav
-      className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 ${
-        isScrolled
-          ? "bg-background border-b-3 border-foreground shadow-[0_4px_0_0_rgba(255,255,255,0.05)]"
-          : "bg-background border-b-3 border-foreground"
-      }`}
+      className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 ${isScrolled
+        ? "bg-background border-b-3 border-foreground shadow-[0_4px_0_0_rgba(255,255,255,0.05)]"
+        : "bg-background border-b-3 border-foreground"
+        }`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 md:h-20">
           {/* Logo */}
-          <a href="#" className="flex items-center gap-3 group bg-white px-3 py-1 rounded-xl border-2 border-black shadow-[2px_2px_0px_0px_#000] hover:translate-y-[-1px] hover:shadow-[3px_3px_0px_0px_#000] active:translate-y-[1px] active:shadow-[1px_1px_0px_0px_#000] transition-all">
-            <img
-              src="src/assets/logo.png"
-              alt="yeahzz logo"
-              className="w-24 h-10 object-contain"
-            />
-          </a>
+          <img
+            src="src/assets/logo.png"
+            alt="yeahzz logo"
+            className="w-30 h-15 object-contain"
+          />
 
           {/* Desktop Nav */}
           <div className="hidden md:flex items-center gap-2">
@@ -55,12 +52,7 @@ export default function Navbar() {
           {/* Right actions: Portal Link + CTA */}
           <div className="hidden md:flex items-center gap-4">
             {/* Portal Link */}
-            <Link
-              to="/admin"
-              className="px-4 py-2 border-2 border-foreground text-xs font-mono font-extrabold uppercase tracking-wider rounded-xl bg-neo-green text-black hover:translate-x-[-1px] hover:translate-y-[-1px] shadow-[2px_2px_0px_0px_var(--color-border)] hover:shadow-[3px_3px_0px_0px_var(--color-border)] active:translate-x-[1px] active:translate-y-[1px] transition-all"
-            >
-              Admin Portal
-            </Link>
+
 
             {/* CTA */}
             <a
@@ -97,14 +89,7 @@ export default function Navbar() {
                 {link.label}
               </a>
             ))}
-            
-            <Link
-              to="/admin"
-              className="block px-4 py-3 bg-neo-green text-black font-mono font-bold text-center border-2 border-foreground rounded-xl shadow-[2px_2px_0px_0px_var(--color-border)]"
-              onClick={() => setIsMobileOpen(false)}
-            >
-              Admin Portal
-            </Link>
+
 
             <a
               href="#contact"

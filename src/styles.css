@@ -15,7 +15,7 @@
   --radius-xl: 16px;
   --radius-2xl: 24px;
   --radius-3xl: 32px;
-  
+
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -50,31 +50,36 @@
 :root {
   /* Default is now Dark neo-brutalist theme */
   --radius: 1rem;
-  --background: oklch(0.06 0.01 264); /* Deep dark charcoal/black */
-  --foreground: oklch(0.98 0 0); /* White */
-  
-  --card: oklch(0.12 0.01 264); /* Dark card background */
+  --background: oklch(0.06 0.01 264);
+  /* Deep dark charcoal/black */
+  --foreground: oklch(0.98 0 0);
+  /* White */
+
+  --card: oklch(0.12 0.01 264);
+  /* Dark card background */
   --card-foreground: oklch(0.98 0 0);
-  
+
   --popover: oklch(0.12 0.01 264);
   --popover-foreground: oklch(0.98 0 0);
-  
-  --primary: oklch(0.65 0.25 290); /* Neon violet */
+
+  --primary: oklch(0.65 0.25 290);
+  /* Neon violet */
   --primary-foreground: oklch(0 0 0);
-  
+
   --secondary: oklch(0.18 0.01 264);
   --secondary-foreground: oklch(0.98 0 0);
-  
+
   --muted: oklch(0.18 0.01 264);
   --muted-foreground: oklch(0.7 0 0);
-  
+
   --accent: oklch(0.65 0.25 290);
   --accent-foreground: oklch(0 0 0);
-  
+
   --destructive: oklch(0.65 0.2 25);
   --destructive-foreground: oklch(0.98 0 0);
-  
-  --border: oklch(0.98 0 0); /* White borders for high contrast in dark mode */
+
+  --border: oklch(0.98 0 0);
+  /* White borders for high contrast in dark mode */
   --input: oklch(0.12 0.01 264);
   --ring: oklch(0.65 0.25 290);
 }
@@ -98,7 +103,7 @@
 @layer utilities {
   .grid-bg {
     background-size: 24px 24px;
-    background-image: 
+    background-image:
       radial-gradient(circle, rgba(255, 255, 255, 0.06) 1.5px, transparent 1.5px);
   }
 
@@ -133,10 +138,116 @@
     transform: translate(-4px, -4px);
     box-shadow: 8px 8px 0px 0px var(--color-border);
   }
-  
+
   .glow-hover:active {
     transform: translate(2px, 2px);
     box-shadow: 2px 2px 0px 0px var(--color-border);
+  }
+
+  /* Colored neo-brutalist cards */
+  .neo-card-yellow {
+    background-color: var(--color-card);
+    border: 3px solid var(--color-neo-yellow);
+    box-shadow: 4px 4px 0px 0px var(--color-neo-yellow);
+    transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.2s ease;
+  }
+  .neo-card-yellow:hover {
+    transform: translate(-3px, -3px);
+    box-shadow: 7px 7px 0px 0px var(--color-neo-yellow);
+  }
+  .neo-card-yellow:active {
+    transform: translate(2px, 2px);
+    box-shadow: 2px 2px 0px 0px var(--color-neo-yellow);
+  }
+
+  .neo-card-blue {
+    background-color: var(--color-card);
+    border: 3px solid var(--color-neo-blue);
+    box-shadow: 4px 4px 0px 0px var(--color-neo-blue);
+    transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.2s ease;
+  }
+  .neo-card-blue:hover {
+    transform: translate(-3px, -3px);
+    box-shadow: 7px 7px 0px 0px var(--color-neo-blue);
+  }
+  .neo-card-blue:active {
+    transform: translate(2px, 2px);
+    box-shadow: 2px 2px 0px 0px var(--color-neo-blue);
+  }
+
+  .neo-card-pink {
+    background-color: var(--color-card);
+    border: 3px solid var(--color-neo-pink);
+    box-shadow: 4px 4px 0px 0px var(--color-neo-pink);
+    transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.2s ease;
+  }
+  .neo-card-pink:hover {
+    transform: translate(-3px, -3px);
+    box-shadow: 7px 7px 0px 0px var(--color-neo-pink);
+  }
+  .neo-card-pink:active {
+    transform: translate(2px, 2px);
+    box-shadow: 2px 2px 0px 0px var(--color-neo-pink);
+  }
+
+  .neo-card-violet {
+    background-color: var(--color-card);
+    border: 3px solid var(--color-neo-violet);
+    box-shadow: 4px 4px 0px 0px var(--color-neo-violet);
+    transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.2s ease;
+  }
+  .neo-card-violet:hover {
+    transform: translate(-3px, -3px);
+    box-shadow: 7px 7px 0px 0px var(--color-neo-violet);
+  }
+  .neo-card-violet:active {
+    transform: translate(2px, 2px);
+    box-shadow: 2px 2px 0px 0px var(--color-neo-violet);
+  }
+
+  .neo-card-green {
+    background-color: var(--color-card);
+    border: 3px solid var(--color-neo-green);
+    box-shadow: 4px 4px 0px 0px var(--color-neo-green);
+    transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.2s ease;
+  }
+  .neo-card-green:hover {
+    transform: translate(-3px, -3px);
+    box-shadow: 7px 7px 0px 0px var(--color-neo-green);
+  }
+  .neo-card-green:active {
+    transform: translate(2px, 2px);
+    box-shadow: 2px 2px 0px 0px var(--color-neo-green);
+  }
+
+  .neo-card-mint {
+    background-color: var(--color-card);
+    border: 3px solid var(--color-neo-mint);
+    box-shadow: 4px 4px 0px 0px var(--color-neo-mint);
+    transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.2s ease;
+  }
+  .neo-card-mint:hover {
+    transform: translate(-3px, -3px);
+    box-shadow: 7px 7px 0px 0px var(--color-neo-mint);
+  }
+  .neo-card-mint:active {
+    transform: translate(2px, 2px);
+    box-shadow: 2px 2px 0px 0px var(--color-neo-mint);
+  }
+
+  .neo-card-orange {
+    background-color: var(--color-card);
+    border: 3px solid var(--color-neo-orange);
+    box-shadow: 4px 4px 0px 0px var(--color-neo-orange);
+    transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.2s ease;
+  }
+  .neo-card-orange:hover {
+    transform: translate(-3px, -3px);
+    box-shadow: 7px 7px 0px 0px var(--color-neo-orange);
+  }
+  .neo-card-orange:active {
+    transform: translate(2px, 2px);
+    box-shadow: 2px 2px 0px 0px var(--color-neo-orange);
   }
 
   /* Neo-brutalist buttons */
@@ -145,12 +256,12 @@
     box-shadow: 4px 4px 0px 0px var(--color-border);
     transition: transform 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.15s ease;
   }
-  
+
   .neo-btn:hover {
     transform: translate(-2px, -2px);
     box-shadow: 6px 6px 0px 0px var(--color-border);
   }
-  
+
   .neo-btn:active {
     transform: translate(2px, 2px);
     box-shadow: 2px 2px 0px 0px var(--color-border);
@@ -162,7 +273,7 @@
     gap: 6px;
     margin-bottom: 12px;
   }
-  
+
   .neo-window-dot {
     width: 10px;
     height: 10px;
@@ -173,13 +284,27 @@
 
 /* Animations */
 @keyframes float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-10px); }
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-10px);
+  }
 }
 
 @keyframes pulse-glow {
-  0%, 100% { opacity: 0.8; }
-  50% { opacity: 1; }
+
+  0%,
+  100% {
+    opacity: 0.8;
+  }
+
+  50% {
+    opacity: 1;
+  }
 }
 
 .animate-float {

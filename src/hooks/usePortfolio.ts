@@ -8,6 +8,7 @@ export interface Project {
   category: string;
   image: string;
   tags: string[];
+  websiteUrl?: string;
 }
 
 const DEFAULT_PROJECTS: Project[] = [
@@ -61,7 +62,7 @@ export function usePortfolio() {
         querySnapshot.forEach((docSnap) => {
           list.push({ id: docSnap.id, ...docSnap.data() } as Project);
         });
-        
+
         if (list.length === 0) {
           // If Firestore is empty, seed it with default projects
           for (const proj of DEFAULT_PROJECTS) {
@@ -120,7 +121,7 @@ export function usePortfolio() {
     const id = Date.now().toString(36) + Math.random().toString(36).substring(2, 6);
     const newProj = { id, ...project };
     const updated = [...projects, newProj];
-    
+
     if (isFirebaseConnected && db) {
       try {
         await setDoc(doc(db, "portfolio_projects", id), project);
@@ -128,14 +129,14 @@ export function usePortfolio() {
         console.error("Firestore add failed:", error);
       }
     }
-    
+
     await saveProjects(updated);
     return newProj;
   };
 
   const updateProject = async (project: Project) => {
     const updated = projects.map((p) => (p.id === project.id ? project : p));
-    
+
     if (isFirebaseConnected && db) {
       try {
         const { id, ...data } = project;
@@ -144,13 +145,13 @@ export function usePortfolio() {
         console.error("Firestore update failed:", error);
       }
     }
-    
+
     await saveProjects(updated);
   };
 
   const deleteProject = async (id: string) => {
     const updated = projects.filter((p) => p.id !== id);
-    
+
     if (isFirebaseConnected && db) {
       try {
         await deleteDoc(doc(db, "portfolio_projects", id));
@@ -158,7 +159,7 @@ export function usePortfolio() {
         console.error("Firestore delete failed:", error);
       }
     }
-    
+
     await saveProjects(updated);
   };
 

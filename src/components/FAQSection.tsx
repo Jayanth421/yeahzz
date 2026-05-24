@@ -39,19 +39,21 @@ function FAQItem({
   answer,
   isOpen,
   onToggle,
+  colorClass,
 }: {
   question: string;
   answer: string;
   isOpen: boolean;
   onToggle: () => void;
+  colorClass: string;
 }) {
   return (
-    <div className="glass-card rounded-xl overflow-hidden transition-all duration-300">
+    <div className={`bg-card border-2 overflow-hidden transition-all duration-300 rounded-xl ${colorClass}`}>
       <button
         onClick={onToggle}
         className="w-full flex items-center justify-between p-6 text-left hover:bg-white/[0.03] transition-colors"
       >
-        <span className="font-display font-bold text-sm sm:text-base pr-4">
+        <span className="font-display font-bold text-sm sm:text-base pr-4 text-white">
           {question}
         </span>
         <ChevronDown
@@ -65,7 +67,7 @@ function FAQItem({
           isOpen ? "max-h-96" : "max-h-0"
         }`}
       >
-        <div className="px-6 pb-6 text-sm text-muted-foreground leading-relaxed">
+        <div className="px-6 pb-6 text-xs font-mono text-muted-foreground leading-relaxed">
           {answer}
         </div>
       </div>
@@ -77,32 +79,45 @@ export default function FAQSection() {
   const [openIndex, setOpenIndex] = useState<number | null>(0);
 
   return (
-    <section className="py-24 relative">
-      <div className="absolute top-0 left-0 size-[400px] bg-neon-purple/5 blur-[100px] rounded-full pointer-events-none" />
+    <section className="py-24 relative bg-background">
+      <div className="absolute top-0 left-0 size-[400px] bg-neo-violet/5 blur-[100px] rounded-full pointer-events-none" />
 
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="text-center mb-16">
-          <span className="inline-block font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-neon-blue mb-4">
+          <span className="inline-block font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-neo-blue mb-4">
             [ 08 ] FAQ
           </span>
           <h2 className="font-display text-4xl sm:text-5xl font-extrabold mb-4">
             Common <span className="text-gradient">Questions</span>
           </h2>
-          <p className="text-muted-foreground">
+          <p className="text-muted-foreground text-sm font-mono leading-relaxed mt-2">
             Everything you need to know before getting started.
           </p>
         </div>
 
         <div className="space-y-4">
-          {faqs.map((faq, index) => (
-            <FAQItem
-              key={index}
-              question={faq.question}
-              answer={faq.answer}
-              isOpen={openIndex === index}
-              onToggle={() => setOpenIndex(openIndex === index ? null : index)}
-            />
-          ))}
+          {faqs.map((faq, index) => {
+            const colors = [
+              "border-neo-blue shadow-[3px_3px_0px_0px_var(--color-neo-blue)]",
+              "border-neo-violet shadow-[3px_3px_0px_0px_var(--color-neo-violet)]",
+              "border-neo-green shadow-[3px_3px_0px_0px_var(--color-neo-green)]",
+              "border-neo-yellow shadow-[3px_3px_0px_0px_var(--color-neo-yellow)]",
+              "border-neo-pink shadow-[3px_3px_0px_0px_var(--color-neo-pink)]",
+              "border-neo-orange shadow-[3px_3px_0px_0px_var(--color-neo-orange)]",
+            ];
+            const colorClass = colors[index % colors.length];
+
+            return (
+              <FAQItem
+                key={index}
+                question={faq.question}
+                answer={faq.answer}
+                isOpen={openIndex === index}
+                onToggle={() => setOpenIndex(openIndex === index ? null : index)}
+                colorClass={colorClass}
+              />
+            );
+          })}
         </div>
       </div>
     </section>

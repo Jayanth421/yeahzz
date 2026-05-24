@@ -88,6 +88,7 @@ function AdminDashboard() {
     category: "Website",
     image: "",
     tags: "",
+    websiteUrl: "",
   });
 
   // Authentication States
@@ -229,6 +230,7 @@ function AdminDashboard() {
       category: projectForm.category,
       image: projectForm.image || "src/assets/portfolio-fintech.jpg",
       tags: tagsArray,
+      websiteUrl: projectForm.websiteUrl,
     };
 
     if (editingProject) {
@@ -243,17 +245,19 @@ function AdminDashboard() {
       category: "Website",
       image: "",
       tags: "",
+      websiteUrl: "",
     });
   };
 
   const handleEditClick = (project: Project) => {
     setEditingProject(project);
-    setProjectForm({
-      title: project.title,
-      category: project.category,
-      image: project.image,
-      tags: project.tags.join(", "),
-    });
+      setProjectForm({
+        title: project.title,
+        category: project.category,
+        image: project.image,
+        tags: project.tags.join(", "),
+        websiteUrl: project.websiteUrl || "",
+      });
   };
 
   // Filter calculations for inquiries
@@ -798,6 +802,19 @@ function AdminDashboard() {
 
                 <div>
                   <label className="text-xs font-mono font-bold uppercase tracking-widest text-muted-foreground mb-2 block">
+                    Website URL
+                  </label>
+                  <input
+                    type="url"
+                    value={projectForm.websiteUrl}
+                    onChange={(e) => setProjectForm({ ...projectForm, websiteUrl: e.target.value })}
+                    className="w-full bg-black/40 border-2 border-foreground rounded-xl px-4 py-3 text-sm outline-none focus:bg-neo-cream focus:text-black transition-colors font-mono text-white shadow-[2px_2px_0px_0px_#000]"
+                    placeholder="https://example.com"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-xs font-mono font-bold uppercase tracking-widest text-muted-foreground mb-2 block">
                     Tags (Comma Separated)
                   </label>
                   <input
@@ -821,7 +838,7 @@ function AdminDashboard() {
                       type="button"
                       onClick={() => {
                         setEditingProject(null);
-                        setProjectForm({ title: "", category: "Website", image: "", tags: "" });
+                        setProjectForm({ title: "", category: "Website", image: "", tags: "", websiteUrl: "" });
                       }}
                       className="px-4 py-3 bg-white hover:bg-neo-cream text-black border-2 border-black rounded-xl font-mono font-extrabold text-xs uppercase tracking-widest shadow-[2px_2px_0px_0px_#000] hover:translate-x-[-1px] hover:translate-y-[-1px] hover:shadow-[3px_3px_0px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] transition-all cursor-pointer"
                     >
@@ -868,6 +885,18 @@ function AdminDashboard() {
                             </span>
                           ))}
                         </div>
+                        {project.websiteUrl && (
+                          <div className="mt-2">
+                            <a
+                              href={project.websiteUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-block px-3 py-1 bg-neo-pink text-black rounded-full text-[10px] font-mono font-bold hover:bg-neo-pink/80 transition-colors"
+                            >
+                              Visit Site
+                            </a>
+                          </div>
+                        )}
                       </div>
 
                       <div className="flex flex-col sm:flex-row gap-2">

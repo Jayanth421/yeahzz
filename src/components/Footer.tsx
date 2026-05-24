@@ -52,12 +52,18 @@ export default function Footer() {
             <div className="flex gap-3">
               {socialLinks.map((social, i) => {
                 const Icon = social.icon;
+                const hoverColors = [
+                  "hover:bg-neo-blue hover:text-black",
+                  "hover:bg-neo-violet hover:text-white",
+                  "hover:bg-neo-pink hover:text-black",
+                  "hover:bg-neo-yellow hover:text-black",
+                ];
                 return (
                   <a
                     key={i}
                     href={social.href}
                     aria-label={social.label}
-                    className="size-10 glass-card rounded-lg flex items-center justify-center hover:bg-white/10 hover:text-neon-blue transition-all"
+                    className={`size-10 bg-card border-2 border-black rounded-lg flex items-center justify-center shadow-[2px_2px_0px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0px_0px_#000] transition-all text-white cursor-pointer ${hoverColors[i % hoverColors.length]}`}
                   >
                     <Icon className="size-4" />
                   </a>
