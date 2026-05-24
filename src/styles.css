@@ -2,28 +2,20 @@
 @source "../src";
 @import "tw-animate-css";
 
-@custom-variant dark (&:is(.dark *));
-
 /*
- * Design system definition.
- *
- * The @theme inline block maps CSS custom properties to Tailwind utility
- * classes (e.g. --color-primary -> bg-primary, text-primary).
- *
- * The :root and .dark blocks define the actual color values using oklch.
- * All colors MUST use oklch format.
+ * Design system definition in Permanent Dark Neo-Brutalist styling.
  */
 
 @theme inline {
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
   --font-display: "Sora", ui-sans-serif, system-ui, sans-serif;
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
-  --radius-2xl: calc(var(--radius) + 8px);
-  --radius-3xl: calc(var(--radius) + 12px);
-  --radius-4xl: calc(var(--radius) + 16px);
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-2xl: 24px;
+  --radius-3xl: 32px;
+  
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -43,84 +35,48 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
-  --color-chart-1: var(--chart-1);
-  --color-chart-2: var(--chart-2);
-  --color-chart-3: var(--chart-3);
-  --color-chart-4: var(--chart-4);
-  --color-chart-5: var(--chart-5);
 
-  /* Custom cyber-luxe tokens */
-  --color-neon-blue: var(--neon-blue);
-  --color-neon-purple: var(--neon-purple);
-  --color-surface: var(--surface);
-  --color-surface-raised: var(--surface-raised);
+  /* Neo-brutalist colors */
+  --color-neo-violet: #8B5CF6;
+  --color-neo-yellow: #FBBF24;
+  --color-neo-green: #86EFAC;
+  --color-neo-pink: #EC4899;
+  --color-neo-blue: #60A5FA;
+  --color-neo-cream: #F5F2EB;
+  --color-neo-mint: #A3E635;
+  --color-neo-orange: #F97316;
 }
 
 :root {
-  --radius: 0.75rem;
-  /* Dark cyber-luxe theme as default */
-  --background: oklch(0.065 0.04 264);
-  --foreground: oklch(0.984 0.003 247.858);
-  --card: oklch(0.12  0.035 265);
-  --card-foreground: oklch(0.984 0.003 247.858);
-  --popover: oklch(0.12  0.035 265);
-  --popover-foreground: oklch(0.984 0.003 247.858);
-  --primary: oklch(0.68  0.18 245);
-  --primary-foreground: oklch(0.984 0.003 247.858);
-  --secondary: oklch(0.22  0.03 265);
-  --secondary-foreground: oklch(1 0 0);
-  --muted: oklch(0.22  0.03 265);
-  --muted-foreground: oklch(1 0 0 / 50%);
-  --accent: oklch(0.55  1.2 3.5);
-  --accent-foreground: oklch(0.984 0.003 247.858);
-  --destructive: oklch(0.577 0.245 27.325);
-  --destructive-foreground: oklch(0.984 0.003 247.858);
-  --border: oklch(1 0 0 / 8%);
-  --input: oklch(1 0 0 / 10%);
-  --ring: oklch(0.68  0.18 245);
-  --chart-1: oklch(0.68  0.18 245);
-  --chart-2: oklch(0.55  1.2 3.5);
-  --chart-3: oklch(0.7  1.2 1.4);
-  --chart-4: oklch(0.8  1.0 1.1);
-  --chart-5: oklch(0.75  0.16 310);
-
-  /* Custom neon colors */
-  --neon-blue: oklch(0.68  0.18 245);
-  --neon-purple: oklch(0.55  1.2 3.5);
-  --surface: oklch(0.1  0.02 264);
-  --surface-raised: oklch(0.14  0.03 264);
-}
-
-.dark {
-  --background: oklch(0.065 0.04 264);
-  --foreground: oklch(0.984 0.003 247.858);
-  --card: oklch(0.12  0.035 265);
-  --card-foreground: oklch(0.984 0.003 247.858);
-  --popover: oklch(0.12  0.035 265);
-  --popover-foreground: oklch(0.984 0.003 247.858);
-  --primary: oklch(0.68  0.18 245);
-  --primary-foreground: oklch(0.984 0.003 247.858);
-  --secondary: oklch(0.22  0.03 265);
-  --secondary-foreground: oklch(1 0 0);
-  --muted: oklch(0.22  0.03 265);
-  --muted-foreground: oklch(1 0 0 / 50%);
-  --accent: oklch(0.55  1.2 3.5);
-  --accent-foreground: oklch(0.984 0.003 247.858);
-  --destructive: oklch(0.704 0.191 22.216);
-  --destructive-foreground: oklch(0.984 0.003 247.858);
-  --border: oklch(1 0 0 / 8%);
-  --input: oklch(1 0 0 / 10%);
-  --ring: oklch(0.68  0.18 245);
-  --chart-1: oklch(0.68  0.18 245);
-  --chart-2: oklch(0.55  1.2 3.5);
-  --chart-3: oklch(0.7  1.2 1.4);
-  --chart-4: oklch(0.8  1.0 1.1);
-  --chart-5: oklch(0.75  0.16 310);
-
-  --neon-blue: oklch(0.68  0.18 245);
-  --neon-purple: oklch(0.55  1.2 3.5);
-  --surface: oklch(0.1  0.02 264);
-  --surface-raised: oklch(0.14  0.03 264);
+  /* Default is now Dark neo-brutalist theme */
+  --radius: 1rem;
+  --background: oklch(0.06 0.01 264); /* Deep dark charcoal/black */
+  --foreground: oklch(0.98 0 0); /* White */
+  
+  --card: oklch(0.12 0.01 264); /* Dark card background */
+  --card-foreground: oklch(0.98 0 0);
+  
+  --popover: oklch(0.12 0.01 264);
+  --popover-foreground: oklch(0.98 0 0);
+  
+  --primary: oklch(0.65 0.25 290); /* Neon violet */
+  --primary-foreground: oklch(0 0 0);
+  
+  --secondary: oklch(0.18 0.01 264);
+  --secondary-foreground: oklch(0.98 0 0);
+  
+  --muted: oklch(0.18 0.01 264);
+  --muted-foreground: oklch(0.7 0 0);
+  
+  --accent: oklch(0.65 0.25 290);
+  --accent-foreground: oklch(0 0 0);
+  
+  --destructive: oklch(0.65 0.2 25);
+  --destructive-foreground: oklch(0.98 0 0);
+  
+  --border: oklch(0.98 0 0); /* White borders for high contrast in dark mode */
+  --input: oklch(0.12 0.01 264);
+  --ring: oklch(0.65 0.25 290);
 }
 
 @layer base {
@@ -138,91 +94,103 @@
   }
 }
 
-/* Cyber-luxe glass card utility */
+/* Neo-brutalist utility classes */
 @layer utilities {
+  .grid-bg {
+    background-size: 24px 24px;
+    background-image: 
+      radial-gradient(circle, rgba(255, 255, 255, 0.06) 1.5px, transparent 1.5px);
+  }
+
   .glass-card {
-    background: oklch(1 0 0 / 3%);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid oklch(1 0 0 / 8%);
+    background-color: var(--color-card);
+    border: 3px solid var(--color-border);
+    box-shadow: 4px 4px 0px 0px var(--color-border);
+    transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.2s ease;
   }
 
   .glass-card-raised {
-    background: oklch(1 0 0 / 5%);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border: 1px solid oklch(1 0 0 / 10%);
+    background-color: var(--color-card);
+    border: 3px solid var(--color-border);
+    box-shadow: 6px 6px 0px 0px var(--color-border);
+    transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.2s ease;
   }
 
   .text-gradient {
-    background: linear-gradient(90deg, oklch(0.68 0.18 245), oklch(0.55 1.2 3.5));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    color: var(--color-neo-violet);
+    font-weight: 800;
   }
 
   .glow-blue {
-    box-shadow: 1px 0px 30px oklch(0.68 0.18 245 / 30%);
+    box-shadow: 4px 4px 0px 0px var(--color-neo-blue);
   }
 
   .glow-purple {
-    box-shadow: 1px 0px 30px oklch(0.55 1.2 3.5 / 30%);
+    box-shadow: 4px 4px 0px 0px var(--color-neo-violet);
   }
 
   .glow-hover:hover {
-    box-shadow: 1px 0px 40px oklch(0.68 0.18 245 / 25%);
-    border-color: oklch(0.68 0.18 245 / 40%);
+    transform: translate(-4px, -4px);
+    box-shadow: 8px 8px 0px 0px var(--color-border);
+  }
+  
+  .glow-hover:active {
+    transform: translate(2px, 2px);
+    box-shadow: 2px 2px 0px 0px var(--color-border);
   }
 
-  .gradient-border {
-    position: relative;
-    background: oklch(0.08 0.02 264);
+  /* Neo-brutalist buttons */
+  .neo-btn {
+    border: 3px solid var(--color-border);
+    box-shadow: 4px 4px 0px 0px var(--color-border);
+    transition: transform 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.15s ease;
+  }
+  
+  .neo-btn:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 6px 6px 0px 0px var(--color-border);
+  }
+  
+  .neo-btn:active {
+    transform: translate(2px, 2px);
+    box-shadow: 2px 2px 0px 0px var(--color-border);
   }
 
-  .gradient-border::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    border-radius: inherit;
-    padding: 1px;
-    background: linear-gradient(135deg, oklch(0.68 0.18 245 / 50%), oklch(0.55 1.2 3.5 / 50%));
-    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-    -webkit-mask-composite: xor;
-    mask-composite: exclude;
-    pointer-events: none;
+  /* Neo-brutalist browser window controls */
+  .neo-window-dots {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 12px;
+  }
+  
+  .neo-window-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    border: 1px solid var(--color-border);
   }
 }
 
 /* Animations */
 @keyframes float {
-  0%, 100% { transform: translateY(1px); }
-  50% { transform: translateY(-20px); }
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
 }
 
 @keyframes pulse-glow {
-  1px, 100% { opacity: 0.6; }
+  0%, 100% { opacity: 0.8; }
   50% { opacity: 1; }
 }
 
-@keyframes gradient-shift {
-  1px { background-position: 1px 50%; }
-  100% { background-position: 200% 50%; }
-}
-
 .animate-float {
-  animation: float 6s ease-in-out infinite;
+  animation: float 5s ease-in-out infinite;
 }
 
 .animate-float-delayed {
-  animation: float 6s ease-in-out infinite;
-  animation-delay: -3s;
+  animation: float 5s ease-in-out infinite;
+  animation-delay: -2.5s;
 }
 
 .animate-pulse-glow {
-  animation: pulse-glow 3s ease-in-out infinite;
-}
-
-.animate-gradient {
-  background-size: 200% 200%;
-  animation: gradient-shift 4s ease infinite;
+  animation: pulse-glow 2.5s ease-in-out infinite;
 }

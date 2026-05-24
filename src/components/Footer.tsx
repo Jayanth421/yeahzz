@@ -34,14 +34,17 @@ export default function Footer() {
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-12 mb-16">
           {/* Brand */}
           <div className="sm:col-span-2 lg:col-span-1">
-            <a href="#" className="flex items-center gap-2 mb-6">
-              <div className="size-8 rounded-lg bg-gradient-to-br from-neon-blue to-neon-purple flex items-center justify-center">
-                <Zap className="size-5 text-white" />
-              </div>
-              <span className="font-display text-xl font-bold tracking-tight">
-                LUMINA<span className="text-neon-blue">.</span>
-              </span>
-            </a>
+            
+              <a href="#" className="flex items-center gap-3 group">
+  <img
+    src="src/assets/logo.png"
+    alt="yeahzz logo"
+    className="w-30 h-15 object-contain"
+  />
+</a>
+              
+              
+            
             <p className="text-sm text-muted-foreground leading-relaxed mb-6">
               Premium web development and digital marketing agency helping businesses
               scale with precision and impact.
@@ -102,9 +105,9 @@ export default function Footer() {
               Contact
             </h4>
             <ul className="space-y-3 text-sm text-muted-foreground">
-              <li>hello@lumina.agency</li>
-              <li>+91 98765 43210</li>
-              <li>Mumbai, India</li>
+              <li>hello@yeahzz.in</li>
+              <li>+91 8341858290</li>
+              <li>Hyderabad, India</li>
             </ul>
           </div>
         </div>
@@ -112,7 +115,8 @@ export default function Footer() {
         {/* Bottom bar */}
         <div className="pt-8 border-t border-white/5 flex flex-col sm:flex-row justify-between items-center gap-4">
           <p className="text-[10px] font-mono uppercase tracking-[0.2em] text-muted-foreground">
-            © 2024 Lumina Digital Agency. All rights reserved.
+            © 2025 yeahzz. All rights reserved.
+           
           </p>
           <div className="flex gap-6 text-[10px] font-mono uppercase tracking-[0.2em] text-muted-foreground">
             <a href="#" className="hover:text-foreground transition-colors">

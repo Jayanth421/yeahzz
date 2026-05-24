@@ -13,7 +13,38 @@ export default function ContactSection() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (typeof window !== "undefined") {
+      try {
+        const storedSubmissions = localStorage.getItem("nexus_craft_submissions");
+        const submissions = storedSubmissions ? JSON.parse(storedSubmissions) : [];
+        
+        const newSubmission = {
+          id: Date.now().toString(36) + Math.random().toString(36).substring(2, 7),
+          name: form.name,
+          email: form.email,
+          phone: form.phone,
+          service: form.service || "web", // Default to "web" or empty if none selected, but form select has options
+          message: form.message,
+          timestamp: new Date().toISOString(),
+          status: "active", // Default status is active
+        };
+
+        submissions.push(newSubmission);
+        localStorage.setItem("nexus_craft_submissions", JSON.stringify(submissions));
+      } catch (error) {
+        console.error("Error saving submission to localStorage:", error);
+      }
+    }
+
     setSubmitted(true);
+    setForm({
+      name: "",
+      email: "",
+      phone: "",
+      service: "",
+      message: "",
+    });
     setTimeout(() => setSubmitted(false), 3000);
   };
 
@@ -38,7 +69,7 @@ export default function ContactSection() {
 
             <div className="space-y-5">
               <a
-                href="mailto:hello@lumina.agency"
+                href="mailto:hello@yeahzz.in"
                 className="flex items-center gap-4 group"
               >
                 <div className="size-12 glass-card rounded-xl flex items-center justify-center group-hover:bg-neon-blue/10 transition-colors">
@@ -49,12 +80,12 @@ export default function ContactSection() {
                     Email Us
                   </div>
                   <div className="font-medium group-hover:text-neon-blue transition-colors">
-                    hello@lumina.agency
+                    hello@yeahzz.in
                   </div>
                 </div>
               </a>
 
-              <a href="tel:+919876543210" className="flex items-center gap-4 group">
+              <a href="tel:+918341858290" className="flex items-center gap-4 group">
                 <div className="size-12 glass-card rounded-xl flex items-center justify-center group-hover:bg-neon-purple/10 transition-colors">
                   <Phone className="size-5 text-neon-purple" />
                 </div>
@@ -63,13 +94,13 @@ export default function ContactSection() {
                     Call Us
                   </div>
                   <div className="font-medium group-hover:text-neon-purple transition-colors">
-                    +91 98765 43210
+                    +91 8341858290
                   </div>
                 </div>
               </a>
 
               <a
-                href="https://wa.me/919876543210"
+                href="https://wa.me/918341858290"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-4 group"
@@ -95,23 +126,23 @@ export default function ContactSection() {
                   <div className="text-[10px] uppercase tracking-widest text-muted-foreground mb-1">
                     Location
                   </div>
-                  <div className="font-medium">Mumbai, India</div>
+                  <div className="font-medium">Hyderabad, India</div>
                 </div>
               </div>
             </div>
           </div>
 
           {/* Right: Form */}
-          <div className="glass-card-raised rounded-3xl p-8">
+          <div className="bg-white dark:bg-card border-3 border-black rounded-3xl p-8 shadow-[6px_6px_0px_0px_#000] relative z-10">
             {submitted ? (
               <div className="text-center py-12">
-                <div className="size-16 bg-gradient-to-r from-neon-blue to-neon-purple rounded-full flex items-center justify-center mx-auto mb-6">
-                  <Send className="size-8 text-white" />
+                <div className="size-16 bg-neo-pink rounded-full border-2 border-black flex items-center justify-center mx-auto mb-6 shadow-[3px_3px_0px_0px_#000]">
+                  <Send className="size-8 text-black" />
                 </div>
-                <h3 className="font-display text-2xl font-bold mb-2">
+                <h3 className="font-display text-2xl font-extrabold text-black dark:text-white mb-2">
                   Message Sent!
                 </h3>
-                <p className="text-muted-foreground text-sm">
+                <p className="text-muted-foreground font-mono text-xs">
                   We'll get back to you within 24 hours.
                 </p>
               </div>
@@ -119,7 +150,7 @@ export default function ContactSection() {
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="grid sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-2 block">
+                    <label className="text-xs font-mono font-bold uppercase tracking-widest text-foreground mb-2 block">
                       Full Name
                     </label>
                     <input
@@ -129,12 +160,12 @@ export default function ContactSection() {
                       onChange={(e) =>
                         setForm({ ...form, name: e.target.value })
                       }
-                      className="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-sm outline-none focus:border-neon-blue/50 transition-colors placeholder:text-muted-foreground/50"
+                      className="w-full bg-white dark:bg-black/60 border-2 border-black rounded-xl p-4 text-sm text-foreground outline-none focus:bg-neo-cream focus:text-black transition-colors placeholder:text-muted-foreground/50 shadow-[2px_2px_0px_0px_#000] font-mono"
                       placeholder="John Doe"
                     />
                   </div>
                   <div>
-                    <label className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-2 block">
+                    <label className="text-xs font-mono font-bold uppercase tracking-widest text-foreground mb-2 block">
                       Email
                     </label>
                     <input
@@ -144,15 +175,15 @@ export default function ContactSection() {
                       onChange={(e) =>
                         setForm({ ...form, email: e.target.value })
                       }
-                      className="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-sm outline-none focus:border-neon-blue/50 transition-colors placeholder:text-muted-foreground/50"
-                      placeholder="john@company.com"
+                      className="w-full bg-white dark:bg-black/60 border-2 border-black rounded-xl p-4 text-sm text-foreground outline-none focus:bg-neo-cream focus:text-black transition-colors placeholder:text-muted-foreground/50 shadow-[2px_2px_0px_0px_#000] font-mono"
+                      placeholder="hello@example.com"
                     />
                   </div>
                 </div>
 
                 <div className="grid sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-2 block">
+                    <label className="text-xs font-mono font-bold uppercase tracking-widest text-foreground mb-2 block">
                       Phone
                     </label>
                     <input
@@ -161,12 +192,12 @@ export default function ContactSection() {
                       onChange={(e) =>
                         setForm({ ...form, phone: e.target.value })
                       }
-                      className="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-sm outline-none focus:border-neon-blue/50 transition-colors placeholder:text-muted-foreground/50"
-                      placeholder="+91 98765 43210"
+                      className="w-full bg-white dark:bg-black/60 border-2 border-black rounded-xl p-4 text-sm text-foreground outline-none focus:bg-neo-cream focus:text-black transition-colors placeholder:text-muted-foreground/50 shadow-[2px_2px_0px_0px_#000] font-mono"
+                      placeholder="+91 9565656554"
                     />
                   </div>
                   <div>
-                    <label className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-2 block">
+                    <label className="text-xs font-mono font-bold uppercase tracking-widest text-foreground mb-2 block">
                       Service Needed
                     </label>
                     <select
@@ -174,7 +205,7 @@ export default function ContactSection() {
                       onChange={(e) =>
                         setForm({ ...form, service: e.target.value })
                       }
-                      className="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-sm outline-none focus:border-neon-blue/50 transition-colors text-muted-foreground"
+                      className="w-full bg-white dark:bg-black/60 border-2 border-black rounded-xl p-4 text-sm text-foreground outline-none focus:bg-neo-cream focus:text-black transition-colors shadow-[2px_2px_0px_0px_#000] font-mono"
                     >
                       <option value="">Select a service</option>
                       <option value="web">Web Development</option>
@@ -188,7 +219,7 @@ export default function ContactSection() {
                 </div>
 
                 <div>
-                  <label className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-2 block">
+                  <label className="text-xs font-mono font-bold uppercase tracking-widest text-foreground mb-2 block">
                     Project Details
                   </label>
                   <textarea
@@ -197,14 +228,14 @@ export default function ContactSection() {
                     onChange={(e) =>
                       setForm({ ...form, message: e.target.value })
                     }
-                    className="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-sm outline-none focus:border-neon-blue/50 transition-colors placeholder:text-muted-foreground/50 resize-none"
+                    className="w-full bg-white dark:bg-black/60 border-2 border-black rounded-xl p-4 text-sm text-foreground outline-none focus:bg-neo-cream focus:text-black transition-colors placeholder:text-muted-foreground/50 shadow-[2px_2px_0px_0px_#000] font-mono resize-none"
                     placeholder="Tell us about your project..."
                   />
                 </div>
 
                 <button
                   type="submit"
-                  className="w-full py-4 bg-gradient-to-r from-neon-blue to-neon-purple rounded-xl font-bold text-sm uppercase tracking-widest hover:brightness-110 transition-all shadow-lg shadow-neon-blue/20"
+                  className="w-full py-4 bg-neo-violet text-white border-2 border-black rounded-xl font-mono font-bold text-sm uppercase tracking-widest shadow-[3px_3px_0px_0px_#000] hover:translate-x-[-1px] hover:translate-y-[-1px] hover:shadow-[4px_4px_0px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0px_0px_#000] transition-all cursor-pointer"
                 >
                   Send Message
                 </button>

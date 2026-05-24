@@ -19,7 +19,7 @@ export const Route = createFileRoute("/")({
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       {
         title:
-          "Lumina Digital Agency | Web Development & Digital Marketing",
+          "Yeahzz Digital Agency | Web Development & Digital Marketing",
       },
       {
         name: "description",
@@ -28,7 +28,7 @@ export const Route = createFileRoute("/")({
       },
       {
         property: "og:title",
-        content: "Lumina Digital Agency | Web Development & Digital Marketing",
+        content: "Yeahzz Digital Agency | Web Development & Digital Marketing",
       },
       {
         property: "og:description",
