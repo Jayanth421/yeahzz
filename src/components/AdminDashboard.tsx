@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { createFileRoute, Link } from "@tanstack/react-router";
 import { usePortfolio, Project } from "../hooks/usePortfolio";
 import {
   Mail,
@@ -26,10 +25,6 @@ import {
   Edit2,
   AlertCircle
 } from "lucide-react";
-
-export const Route = createFileRoute("/admin")({
-  component: AdminDashboard,
-});
 
 interface Submission {
   id: string;
@@ -349,12 +344,12 @@ function AdminDashboard() {
           </form>
 
           <div className="mt-8 text-center">
-            <Link
-              to="/"
+            <a
+              href="/"
               className="text-xs text-muted-foreground hover:text-white transition-colors flex items-center justify-center gap-1.5 font-mono"
             >
               <ChevronLeft className="size-3" /> [ Back to Site ]
-            </Link>
+            </a>
           </div>
         </div>
       </div>
@@ -382,12 +377,12 @@ function AdminDashboard() {
             </div>
 
             <div className="flex items-center gap-3">
-              <Link
-                to="/"
+              <a
+                href="/"
                 className="px-4 py-2 text-xs sm:text-sm font-semibold tracking-wider text-muted-foreground hover:text-white transition-colors rounded-lg hover:bg-white/5 flex items-center gap-2 border border-white/5"
               >
                 <ChevronLeft className="size-4" /> Back to Website
-              </Link>
+              </a>
               <button
                 onClick={handleLogout}
                 className="px-4 py-2 text-xs sm:text-sm font-semibold tracking-wider text-destructive hover:bg-destructive/10 transition-colors rounded-lg flex items-center gap-2 border border-destructive/20 cursor-pointer"
@@ -1058,3 +1053,6 @@ function AdminDashboard() {
     </div>
   );
 }
+
+export default AdminDashboard;
+

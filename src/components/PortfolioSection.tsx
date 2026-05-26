@@ -9,11 +9,11 @@ import appImg from "../assets/portfolio-app.jpg";
 import marketingImg from "../assets/portfolio-marketing.jpg";
 
 const imageMap: Record<string, string> = {
-  "src/assets/portfolio-fintech.jpg": fintechImg,
-  "src/assets/portfolio-fashion.jpg": fashionImg,
-  "src/assets/portfolio-realestate.jpg": realestateImg,
-  "src/assets/portfolio-app.jpg": appImg,
-  "src/assets/portfolio-marketing.jpg": marketingImg,
+  "src/assets/portfolio-fintech.jpg": fintechImg.src,
+  "src/assets/portfolio-fashion.jpg": fashionImg.src,
+  "src/assets/portfolio-realestate.jpg": realestateImg.src,
+  "src/assets/portfolio-app.jpg": appImg.src,
+  "src/assets/portfolio-marketing.jpg": marketingImg.src,
 };
 
 const getProjectImage = (path: string) => {

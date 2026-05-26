@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Link } from "@tanstack/react-router";
+import logo from "../assets/logo.png";
 import { Menu, X } from "lucide-react";
 
 const navLinks = [
@@ -29,14 +29,12 @@ export default function Navbar() {
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 md:h-20">
-          {/* Logo */}
           <img
-            src="src/assets/logo.png"
+            src={logo.src}
             alt="yeahzz logo"
             className="w-30 h-15 object-contain"
           />
 
-          {/* Desktop Nav */}
           <div className="hidden md:flex items-center gap-2">
             {navLinks.map((link) => (
               <a
@@ -49,12 +47,7 @@ export default function Navbar() {
             ))}
           </div>
 
-          {/* Right actions: Portal Link + CTA */}
           <div className="hidden md:flex items-center gap-4">
-            {/* Portal Link */}
-
-
-            {/* CTA */}
             <a
               href="#contact"
               className="px-5 py-2.5 bg-neo-violet text-white text-xs font-mono font-extrabold uppercase tracking-wider rounded-xl border-2 border-foreground shadow-[2px_2px_0px_0px_var(--color-border)] hover:translate-x-[-1px] hover:translate-y-[-1px] hover:shadow-[3px_3px_0px_0px_var(--color-border)] active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0px_0px_var(--color-border)] transition-all"
@@ -63,7 +56,6 @@ export default function Navbar() {
             </a>
           </div>
 
-          {/* Mobile toggle actions */}
           <div className="md:hidden flex items-center gap-3">
             <button
               className="p-2 border-2 border-foreground rounded-xl bg-card text-foreground"
@@ -75,7 +67,6 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* Mobile Menu */}
       {isMobileOpen && (
         <div className="md:hidden bg-background border-t-2 border-foreground">
           <div className="px-4 py-4 space-y-2">
@@ -89,7 +80,6 @@ export default function Navbar() {
                 {link.label}
               </a>
             ))}
-
 
             <a
               href="#contact"

@@ -73,7 +73,7 @@ export default function HeroSection() {
                 <span className="font-mono text-[9px] uppercase font-bold text-muted-foreground">yeahzz_analytics.exe</span>
               </div>
               <img
-                src={dashboardMockup}
+                src={dashboardMockup.src}
                 alt="Saas dashboard mockup"
                 className="w-full h-auto object-cover grayscale-25"
               />
@@ -89,7 +89,7 @@ export default function HeroSection() {
                 </div>
                 <div className="p-3 bg-white flex-1 flex items-center justify-center min-h-[100px]">
                   <img
-                    src={fintechImg}
+                    src={fintechImg.src}
                     alt="Team developer portrait"
                     className="w-full h-24 object-cover border-2 border-black rounded-lg shadow-[2px_2px_0px_0px_#000]"
                   />
