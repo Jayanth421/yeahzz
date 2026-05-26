@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { collection, getDocs, doc, setDoc, deleteDoc } from "firebase/firestore";
-import { db, isFirebaseConnected } from "../lib/firebase";
+import { db, isFirebaseConnected, PORTFOLIO_COLLECTION_NAMES } from "../lib/firebase";
 
 export interface Project {
   id: string;
@@ -49,6 +49,21 @@ const DEFAULT_PROJECTS: Project[] = [
   },
 ];
 
+const STORAGE_KEY = "nexus_craft_portfolio";
+const REQUEST_TIMEOUT_MS = 10000;
+
+const withTimeout = async <T,>(promise: Promise<T>, timeoutMs = REQUEST_TIMEOUT_MS) => {
+  let timeoutId: ReturnType<typeof setTimeout> | undefined;
+  try {
+    const timeoutPromise = new Promise<null>((resolve) => {
+      timeoutId = setTimeout(() => resolve(null), timeoutMs);
+    });
+    return await Promise.race([promise, timeoutPromise]);
+  } finally {
+    if (timeoutId) clearTimeout(timeoutId);
+  }
+};
+
 export function usePortfolio() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
@@ -57,25 +72,49 @@ export function usePortfolio() {
     setLoading(true);
     if (isFirebaseConnected && db) {
       try {
-        const querySnapshot = await getDocs(collection(db, "portfolio_projects"));
-        const list: Project[] = [];
-        querySnapshot.forEach((docSnap) => {
-          list.push({ id: docSnap.id, ...docSnap.data() } as Project);
-        });
+        let list: Project[] = [];
+        let activeCollection = PORTFOLIO_COLLECTION_NAMES[0];
+
+        for (const collectionName of PORTFOLIO_COLLECTION_NAMES) {
+          const querySnapshot = await withTimeout(getDocs(collection(db, collectionName)));
+          if (querySnapshot === null) {
+            console.warn(`Firestore read timed out for collection: ${collectionName}`);
+            continue;
+          }
+          const parsed = querySnapshot.docs.map((docSnap) => ({
+            id: docSnap.id,
+            ...(docSnap.data() as Omit<Project, "id">),
+          }));
+
+          if (parsed.length > 0) {
+            list = parsed;
+            activeCollection = collectionName;
+            break;
+          }
+        }
 
         if (list.length === 0) {
           // If Firestore is empty, seed it with default projects
           for (const proj of DEFAULT_PROJECTS) {
-            await setDoc(doc(db, "portfolio_projects", proj.id), {
+            const writeResult = await withTimeout(setDoc(doc(db, activeCollection, proj.id), {
               title: proj.title,
               category: proj.category,
               image: proj.image,
               tags: proj.tags,
-            });
+            }));
+            if (writeResult === null) {
+              console.warn(`Firestore seed write timed out for project: ${proj.id}`);
+            }
           }
           setProjects(DEFAULT_PROJECTS);
+          if (typeof window !== "undefined") {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(DEFAULT_PROJECTS));
+          }
         } else {
           setProjects(list);
+          if (typeof window !== "undefined") {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+          }
         }
       } catch (error) {
         console.error("Failed to fetch from Firestore, falling back to local:", error);
@@ -92,11 +131,11 @@ export function usePortfolio() {
   const loadLocalProjects = () => {
     if (typeof window !== "undefined") {
       try {
-        const stored = localStorage.getItem("nexus_craft_portfolio");
+        const stored = localStorage.getItem(STORAGE_KEY);
         if (stored) {
           setProjects(JSON.parse(stored));
         } else {
-          localStorage.setItem("nexus_craft_portfolio", JSON.stringify(DEFAULT_PROJECTS));
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(DEFAULT_PROJECTS));
           setProjects(DEFAULT_PROJECTS);
         }
       } catch (error) {
@@ -113,7 +152,7 @@ export function usePortfolio() {
   const saveProjects = async (updatedList: Project[]) => {
     setProjects(updatedList);
     if (typeof window !== "undefined") {
-      localStorage.setItem("nexus_craft_portfolio", JSON.stringify(updatedList));
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedList));
     }
   };
 
@@ -124,7 +163,10 @@ export function usePortfolio() {
 
     if (isFirebaseConnected && db) {
       try {
-        await setDoc(doc(db, "portfolio_projects", id), project);
+        const writeResult = await withTimeout(setDoc(doc(db, PORTFOLIO_COLLECTION_NAMES[0], id), project));
+        if (writeResult === null) {
+          console.warn("Firestore add timed out.");
+        }
       } catch (error) {
         console.error("Firestore add failed:", error);
       }
@@ -140,7 +182,10 @@ export function usePortfolio() {
     if (isFirebaseConnected && db) {
       try {
         const { id, ...data } = project;
-        await setDoc(doc(db, "portfolio_projects", id), data);
+        const writeResult = await withTimeout(setDoc(doc(db, PORTFOLIO_COLLECTION_NAMES[0], id), data));
+        if (writeResult === null) {
+          console.warn("Firestore update timed out.");
+        }
       } catch (error) {
         console.error("Firestore update failed:", error);
       }
@@ -154,7 +199,10 @@ export function usePortfolio() {
 
     if (isFirebaseConnected && db) {
       try {
-        await deleteDoc(doc(db, "portfolio_projects", id));
+        const writeResult = await withTimeout(deleteDoc(doc(db, PORTFOLIO_COLLECTION_NAMES[0], id)));
+        if (writeResult === null) {
+          console.warn("Firestore delete timed out.");
+        }
       } catch (error) {
         console.error("Firestore delete failed:", error);
       }

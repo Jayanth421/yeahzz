@@ -1,7 +1,9 @@
 import { useState } from "react";
 import { Mail, Phone, MessageCircle, Send, MapPin } from "lucide-react";
+import { useSubmissions } from "../hooks/useSubmissions";
 
 export default function ContactSection() {
+  const { addSubmission } = useSubmissions({ autoLoad: false });
   const [form, setForm] = useState({
     name: "",
     email: "",
@@ -11,31 +13,16 @@ export default function ContactSection() {
   });
   const [submitted, setSubmitted] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (typeof window !== "undefined") {
-      try {
-        const storedSubmissions = localStorage.getItem("nexus_craft_submissions");
-        const submissions = storedSubmissions ? JSON.parse(storedSubmissions) : [];
-        
-        const newSubmission = {
-          id: Date.now().toString(36) + Math.random().toString(36).substring(2, 7),
-          name: form.name,
-          email: form.email,
-          phone: form.phone,
-          service: form.service || "web", // Default to "web" or empty if none selected, but form select has options
-          message: form.message,
-          timestamp: new Date().toISOString(),
-          status: "active", // Default status is active
-        };
-
-        submissions.push(newSubmission);
-        localStorage.setItem("nexus_craft_submissions", JSON.stringify(submissions));
-      } catch (error) {
-        console.error("Error saving submission to localStorage:", error);
-      }
-    }
+    await addSubmission({
+      name: form.name,
+      email: form.email,
+      phone: form.phone,
+      service: form.service || "web",
+      message: form.message,
+    });
 
     setSubmitted(true);
     setForm({

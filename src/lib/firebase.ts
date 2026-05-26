@@ -1,5 +1,5 @@
 import { initializeApp, getApps, getApp } from "firebase/app";
-import { getFirestore } from "firebase/firestore";
+import { getFirestore, type Firestore } from "firebase/firestore";
 
 const firebaseConfig = {
   apiKey:
@@ -17,10 +17,31 @@ const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID || process.env.VITE_FIREBASE_APP_ID || "",
 };
 
-let db: any = null;
+const primaryPortfolioCollection =
+  process.env.NEXT_PUBLIC_FIREBASE_PORTFOLIO_COLLECTION || "portfolio_projects";
+const primaryInquiryCollection =
+  process.env.NEXT_PUBLIC_FIREBASE_INQUIRY_COLLECTION || "nexus_craft_submissions";
+
+const dedupe = (values: string[]) => [...new Set(values.filter(Boolean))];
+
+export const PORTFOLIO_COLLECTION_NAMES = dedupe([
+  primaryPortfolioCollection,
+  "portfolio_projects",
+  "portfolio",
+  "projects",
+]);
+
+export const INQUIRY_COLLECTION_NAMES = dedupe([
+  primaryInquiryCollection,
+  "nexus_craft_submissions",
+  "submissions",
+  "inquiries",
+]);
+
+let db: Firestore | null = null;
 let isFirebaseConnected = false;
 
-if (firebaseConfig.apiKey && firebaseConfig.projectId) {
+if (firebaseConfig.apiKey && firebaseConfig.projectId && typeof window !== "undefined") {
   try {
     const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
     db = getFirestore(app);

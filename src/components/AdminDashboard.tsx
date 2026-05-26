@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { usePortfolio, Project } from "../hooks/usePortfolio";
+import { useSubmissions, type Submission } from "../hooks/useSubmissions";
 import {
   Mail,
   Phone,
@@ -26,17 +27,6 @@ import {
   AlertCircle
 } from "lucide-react";
 
-interface Submission {
-  id: string;
-  name: string;
-  email: string;
-  phone: string;
-  service: string;
-  message: string;
-  timestamp: string;
-  status: "active" | "resolved";
-}
-
 const serviceLabels: Record<string, string> = {
   web: "Web Development",
   ecommerce: "eCommerce",
@@ -56,8 +46,6 @@ const serviceColors: Record<string, string> = {
 };
 
 function AdminDashboard() {
-  const [submissions, setSubmissions] = useState<Submission[]>([]);
-  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [serviceFilter, setServiceFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -76,6 +64,13 @@ function AdminDashboard() {
     isFirebaseConnected,
   } = usePortfolio();
 
+  const {
+    submissions,
+    removeSubmission,
+    setSubmissionStatus,
+    clearSubmissions,
+  } = useSubmissions();
+
   // Portfolio Form State
   const [editingProject, setEditingProject] = useState<Project | null>(null);
   const [projectForm, setProjectForm] = useState({
@@ -92,23 +87,16 @@ function AdminDashboard() {
   const [showPassword, setShowPassword] = useState(false);
   const [authError, setAuthError] = useState("");
 
-  // Load from localStorage & sessionStorage on mount
+  // Load authentication state on mount
   useEffect(() => {
     if (typeof window !== "undefined") {
       try {
-        const stored = localStorage.getItem("nexus_craft_submissions");
-        if (stored) {
-          setSubmissions(JSON.parse(stored));
-        }
-
         const auth = sessionStorage.getItem("admin_authenticated");
         if (auth === "true") {
           setIsAuthenticated(true);
         }
       } catch (err) {
-        console.error("Failed to load submissions or auth from storage:", err);
-      } finally {
-        setLoading(false);
+        console.error("Failed to load admin auth from storage:", err);
       }
     }
   }, []);
@@ -143,47 +131,30 @@ function AdminDashboard() {
     }
   };
 
-  const updateSubmissions = (newSubmissions: Submission[]) => {
-    setSubmissions(newSubmissions);
-    if (typeof window !== "undefined") {
-      try {
-        localStorage.setItem("nexus_craft_submissions", JSON.stringify(newSubmissions));
-      } catch (err) {
-        console.error("Failed to save submissions to localStorage:", err);
-      }
-    }
-  };
-
-  const deleteSubmission = (id: string) => {
+  const deleteSubmission = async (id: string) => {
     if (confirm("Are you sure you want to delete this submission?")) {
-      const filtered = submissions.filter((s) => s.id !== id);
-      updateSubmissions(filtered);
+      await removeSubmission(id);
       if (selectedSubmission?.id === id) {
         setSelectedSubmission(null);
       }
     }
   };
 
-  const toggleStatus = (id: string) => {
-    const updated = submissions.map((s) => {
-      if (s.id === id) {
-        return {
-          ...s,
-          status: s.status === "resolved" ? ("active" as const) : ("resolved" as const),
-        };
-      }
-      return s;
-    });
-    updateSubmissions(updated);
+  const toggleStatus = async (id: string) => {
+    const current = submissions.find((item) => item.id === id);
+    if (!current) return;
+
+    const nextStatus = current.status === "resolved" ? "active" : "resolved";
+    await setSubmissionStatus(id, nextStatus);
+
     if (selectedSubmission?.id === id) {
-      const current = updated.find((s) => s.id === id);
-      if (current) setSelectedSubmission(current);
+      setSelectedSubmission({ ...selectedSubmission, status: nextStatus });
     }
   };
 
-  const clearAll = () => {
+  const clearAll = async () => {
     if (confirm("Are you sure you want to clear ALL submissions? This action cannot be undone.")) {
-      updateSubmissions([]);
+      await clearSubmissions();
       setSelectedSubmission(null);
     }
   };
@@ -596,7 +567,9 @@ function AdminDashboard() {
                   </button>
                   
                   <button
-                    onClick={clearAll}
+                    onClick={() => {
+                      void clearAll();
+                    }}
                     disabled={totalCount === 0}
                     className="px-4 py-2 bg-destructive border-2 border-black text-xs font-mono font-extrabold text-white rounded-xl hover:translate-x-[-1px] hover:translate-y-[-1px] shadow-[2px_2px_0px_0px_#000] transition-all disabled:opacity-50 disabled:pointer-events-none cursor-pointer"
                   >
@@ -675,7 +648,9 @@ function AdminDashboard() {
 
                           <td className="py-4 px-6">
                             <button
-                              onClick={() => toggleStatus(s.id)}
+                              onClick={() => {
+                                void toggleStatus(s.id);
+                              }}
                               className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md text-[10px] font-bold cursor-pointer border-2 border-black transition-all ${
                                 s.status === "active"
                                   ? "bg-neo-yellow text-black"
@@ -707,7 +682,9 @@ function AdminDashboard() {
                                 <Eye className="size-4" />
                               </button>
                               <button
-                                onClick={() => toggleStatus(s.id)}
+                                onClick={() => {
+                                  void toggleStatus(s.id);
+                                }}
                                 className={`p-2 bg-white/5 border-2 border-black rounded-lg text-white transition-all cursor-pointer ${
                                   s.status === "active"
                                     ? "hover:bg-neo-green hover:text-black"
@@ -718,7 +695,9 @@ function AdminDashboard() {
                                 <CheckCircle2 className="size-4" />
                               </button>
                               <button
-                                onClick={() => deleteSubmission(s.id)}
+                                onClick={() => {
+                                  void deleteSubmission(s.id);
+                                }}
                                 className="p-2 bg-white/5 hover:bg-destructive border-2 border-black rounded-lg text-white transition-all cursor-pointer"
                                 title="Delete Submission"
                               >
@@ -1023,7 +1002,9 @@ function AdminDashboard() {
 
             <div className="mt-8 pt-6 border-t border-black/30 flex flex-wrap justify-end gap-3">
               <button
-                onClick={() => toggleStatus(selectedSubmission.id)}
+                onClick={() => {
+                  void toggleStatus(selectedSubmission.id);
+                }}
                 className={`px-4 py-2 text-xs font-mono font-bold rounded-xl border-2 border-black transition-all cursor-pointer ${
                   selectedSubmission.status === "active"
                     ? "bg-neo-green text-black"
@@ -1034,7 +1015,7 @@ function AdminDashboard() {
               </button>
               <button
                 onClick={() => {
-                  deleteSubmission(selectedSubmission.id);
+                  void deleteSubmission(selectedSubmission.id);
                 }}
                 className="px-4 py-2 bg-destructive border-2 border-black text-xs font-mono font-bold text-white rounded-xl transition-all cursor-pointer"
               >
