@@ -377,7 +377,7 @@ function AdminDashboard() {
           <AlertCircle className="size-5 flex-shrink-0" />
           <div className="text-xs font-mono font-semibold">
             {isSupabaseConnected 
-              ? "Connected to Supabase. All portfolio updates are synced in real-time." 
+              ? "Supabase is configured. Data sync works when required tables/policies exist." 
               : "Supabase configuration not active. Running on Local Storage fallback. Updates are saved locally."}
           </div>
         </div>

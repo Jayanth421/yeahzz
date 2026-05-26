@@ -21,6 +21,14 @@ const getProjectImage = (path: string) => {
   return path;
 };
 
+const getProjectUrl = (url?: string) => {
+  if (!url) return "";
+  const trimmed = url.trim();
+  if (!trimmed) return "";
+  if (/^https?:\/\//i.test(trimmed)) return trimmed;
+  return `https://${trimmed}`;
+};
+
 const categories = ["All", "Website", "eCommerce", "Branding", "Marketing"];
 
 export default function PortfolioSection() {
@@ -74,44 +82,87 @@ export default function PortfolioSection() {
             <RefreshCw className="size-8 text-neo-pink animate-spin" />
           </div>
         ) : (
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
-            {filtered.map((project, index) => (
-              <div
-                key={project.id || index}
-                className="group bg-white dark:bg-card border-3 border-black rounded-2xl overflow-hidden shadow-[4px_4px_0px_0px_#000] hover:translate-x-[-3px] hover:translate-y-[-3px] hover:shadow-[7px_7px_0px_0px_#000] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[2px_2px_0px_0px_#000] transition-all cursor-pointer"
-              >
-                <div className="relative aspect-video overflow-hidden border-b-3 border-black bg-neo-cream">
-                  <img
-                    src={getProjectImage(project.image)}
-                    alt={project.title}
-                    width={1024}
-                    height={640}
-                    loading="lazy"
-                    className="w-full h-full object-cover group-hover:scale-102 transition-transform duration-500"
-                  />
-                  <div className="absolute inset-4 bg-black/80 border-2 border-black rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center p-4">
-                    <div className="flex items-center gap-2 text-xs font-mono font-extrabold uppercase tracking-wider text-white bg-neo-pink px-4 py-2 border-2 border-black rounded-lg shadow-[2px_2px_0px_0px_#000]">
-                      View Project <ExternalLink className="size-3.5" />
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
+            {filtered.map((project, index) => {
+              const projectUrl = getProjectUrl(project.websiteUrl);
+              const cardClasses =
+                "group bg-white dark:bg-card border-3 border-black rounded-3xl overflow-hidden shadow-[4px_4px_0px_0px_#000] hover:translate-x-[-3px] hover:translate-y-[-3px] hover:shadow-[7px_7px_0px_0px_#000] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[2px_2px_0px_0px_#000] transition-all";
+
+              return projectUrl ? (
+                <a
+                  key={project.id || index}
+                  href={projectUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={`${cardClasses} cursor-pointer`}
+                >
+                  <div className="relative aspect-video overflow-hidden border-b-3 border-black bg-neo-cream">
+                    <img
+                      src={getProjectImage(project.image)}
+                      alt={project.title}
+                      width={1024}
+                      height={640}
+                      loading="lazy"
+                      className="w-full h-full object-cover group-hover:scale-102 transition-transform duration-500"
+                    />
+                    <div className="absolute inset-4 bg-black/80 border-2 border-black rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center p-4">
+                      <div className="flex items-center gap-2 text-xs font-mono font-extrabold uppercase tracking-wider text-white bg-neo-pink px-4 py-2 border-2 border-black rounded-lg shadow-[2px_2px_0px_0px_#000]">
+                        View Project <ExternalLink className="size-3.5" />
+                      </div>
+                    </div>
+                  </div>
+                  <div className="p-6 bg-card text-card-foreground">
+                    <h3 className="font-display text-lg font-extrabold mb-3 group-hover:text-neo-pink transition-colors">
+                      {project.title}
+                    </h3>
+                    <div className="flex flex-wrap gap-2">
+                      {project.tags.map((tag) => (
+                        <span
+                          key={tag}
+                          className="px-2 py-0.5 border border-black rounded-md text-[9px] font-mono font-bold uppercase tracking-wider bg-white text-black shadow-[1px_1px_0px_0px_#000]"
+                        >
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                </a>
+              ) : (
+                <div key={project.id || index} className={`${cardClasses} cursor-default`}>
+                  <div className="relative aspect-video overflow-hidden border-b-3 border-black bg-neo-cream">
+                    <img
+                      src={getProjectImage(project.image)}
+                      alt={project.title}
+                      width={1024}
+                      height={640}
+                      loading="lazy"
+                      className="w-full h-full object-cover group-hover:scale-102 transition-transform duration-500"
+                    />
+                    <div className="absolute inset-4 bg-black/80 border-2 border-black rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center p-4">
+                      <div className="flex items-center gap-2 text-xs font-mono font-extrabold uppercase tracking-wider text-white bg-muted-foreground px-4 py-2 border-2 border-black rounded-lg shadow-[2px_2px_0px_0px_#000]">
+                        URL Not Set
+                      </div>
+                    </div>
+                  </div>
+                  <div className="p-6 bg-card text-card-foreground">
+                    <h3 className="font-display text-lg font-extrabold mb-3 group-hover:text-neo-pink transition-colors">
+                      {project.title}
+                    </h3>
+                    <div className="flex flex-wrap gap-2">
+                      {project.tags.map((tag) => (
+                        <span
+                          key={tag}
+                          className="px-2 py-0.5 border border-black rounded-md text-[9px] font-mono font-bold uppercase tracking-wider bg-white text-black shadow-[1px_1px_0px_0px_#000]"
+                        >
+                          {tag}
+                        </span>
+                      ))}
                     </div>
                   </div>
                 </div>
-                <div className="p-6 bg-card text-card-foreground">
-                  <h3 className="font-display text-lg font-extrabold mb-3 group-hover:text-neo-pink transition-colors">
-                    {project.title}
-                  </h3>
-                  <div className="flex flex-wrap gap-2">
-                    {project.tags.map((tag) => (
-                      <span
-                        key={tag}
-                        className="px-2 py-0.5 border border-black rounded-md text-[9px] font-mono font-bold uppercase tracking-wider bg-white text-black shadow-[1px_1px_0px_0px_#000]"
-                      >
-                        {tag}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            ))}
+                
+              );
+            })}
           </div>
         )}
       </div>
