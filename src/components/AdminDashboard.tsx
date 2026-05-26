@@ -61,7 +61,7 @@ function AdminDashboard() {
     addProject,
     updateProject,
     deleteProject,
-    isFirebaseConnected,
+    isSupabaseConnected,
   } = usePortfolio();
 
   const {
@@ -368,17 +368,17 @@ function AdminDashboard() {
       {/* Main Content Area */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-28 pb-16 relative z-10">
         
-        {/* Firebase connectivity banner */}
+        {/* Supabase connectivity banner */}
         <div className={`mb-8 border-2 rounded-2xl p-4 flex items-center gap-3 shadow-[3px_3px_0px_0px_#000] ${
-          isFirebaseConnected 
+          isSupabaseConnected 
             ? "bg-emerald-950/20 border-emerald-500/40 text-emerald-400" 
             : "bg-amber-950/20 border-amber-500/40 text-amber-400"
         }`}>
           <AlertCircle className="size-5 flex-shrink-0" />
           <div className="text-xs font-mono font-semibold">
-            {isFirebaseConnected 
-              ? "Connected to Firebase Firestore. All portfolio updates are synced in real-time." 
-              : "Firebase configuration not active. Running on Local Storage fallback. Updates are saved locally."}
+            {isSupabaseConnected 
+              ? "Connected to Supabase. All portfolio updates are synced in real-time." 
+              : "Supabase configuration not active. Running on Local Storage fallback. Updates are saved locally."}
           </div>
         </div>
 

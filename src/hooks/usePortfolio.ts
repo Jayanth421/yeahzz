@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
-import { collection, getDocs, doc, setDoc, deleteDoc } from "firebase/firestore";
-import { db, isFirebaseConnected, PORTFOLIO_COLLECTION_NAMES } from "../lib/firebase";
+import { isSupabaseConnected, PORTFOLIO_TABLE_NAMES, supabase } from "../lib/supabase";
 
 export interface Project {
   id: string;
@@ -52,7 +51,7 @@ const DEFAULT_PROJECTS: Project[] = [
 const STORAGE_KEY = "nexus_craft_portfolio";
 const REQUEST_TIMEOUT_MS = 10000;
 
-const withTimeout = async <T,>(promise: Promise<T>, timeoutMs = REQUEST_TIMEOUT_MS) => {
+const withTimeout = async <T,>(promise: Promise<T>, timeoutMs = REQUEST_TIMEOUT_MS): Promise<T | null> => {
   let timeoutId: ReturnType<typeof setTimeout> | undefined;
   try {
     const timeoutPromise = new Promise<null>((resolve) => {
@@ -70,40 +69,64 @@ export function usePortfolio() {
 
   const loadProjects = async () => {
     setLoading(true);
-    if (isFirebaseConnected && db) {
+    if (isSupabaseConnected && supabase) {
+      const client = supabase;
       try {
         let list: Project[] = [];
-        let activeCollection = PORTFOLIO_COLLECTION_NAMES[0];
+        let activeTable = PORTFOLIO_TABLE_NAMES[0];
 
-        for (const collectionName of PORTFOLIO_COLLECTION_NAMES) {
-          const querySnapshot = await withTimeout(getDocs(collection(db, collectionName)));
-          if (querySnapshot === null) {
-            console.warn(`Firestore read timed out for collection: ${collectionName}`);
+        for (const tableName of PORTFOLIO_TABLE_NAMES) {
+          const result = await withTimeout(Promise.resolve(client.from(tableName).select("*")));
+          if (result === null) {
+            console.warn(`Supabase read timed out for table: ${tableName}`);
             continue;
           }
-          const parsed = querySnapshot.docs.map((docSnap) => ({
-            id: docSnap.id,
-            ...(docSnap.data() as Omit<Project, "id">),
-          }));
+          const { data, error } = result;
+          if (error) {
+            console.warn(`Supabase read failed for table: ${tableName}`, error.message);
+            continue;
+          }
+
+          const parsed = (data || []).map((row: Record<string, unknown>) => {
+            const payload = row as Record<string, unknown>;
+            return {
+              id: String(payload.id || ""),
+              title: typeof payload.title === "string" ? payload.title : "",
+              category: typeof payload.category === "string" ? payload.category : "Website",
+              image: typeof payload.image === "string" ? payload.image : "src/assets/portfolio-fintech.jpg",
+              tags: Array.isArray(payload.tags)
+                ? payload.tags.filter((tag): tag is string => typeof tag === "string")
+                : [],
+              websiteUrl: typeof payload.websiteUrl === "string" ? payload.websiteUrl : undefined,
+            } as Project;
+          });
 
           if (parsed.length > 0) {
             list = parsed;
-            activeCollection = collectionName;
+            activeTable = tableName;
             break;
           }
         }
 
         if (list.length === 0) {
-          // If Firestore is empty, seed it with default projects
+          // If Supabase table is empty, seed with defaults
           for (const proj of DEFAULT_PROJECTS) {
-            const writeResult = await withTimeout(setDoc(doc(db, activeCollection, proj.id), {
-              title: proj.title,
-              category: proj.category,
-              image: proj.image,
-              tags: proj.tags,
-            }));
+            const writeResult = await withTimeout(
+              Promise.resolve(
+                supabase.from(activeTable).upsert(
+                {
+                  id: proj.id,
+                  title: proj.title,
+                  category: proj.category,
+                  image: proj.image,
+                  tags: proj.tags,
+                },
+                { onConflict: "id" },
+                ),
+              ),
+            );
             if (writeResult === null) {
-              console.warn(`Firestore seed write timed out for project: ${proj.id}`);
+              console.warn(`Supabase seed write timed out for project: ${proj.id}`);
             }
           }
           setProjects(DEFAULT_PROJECTS);
@@ -117,7 +140,7 @@ export function usePortfolio() {
           }
         }
       } catch (error) {
-        console.error("Failed to fetch from Firestore, falling back to local:", error);
+        console.error("Failed to fetch from Supabase, falling back to local:", error);
         loadLocalProjects();
       } finally {
         setLoading(false);
@@ -161,14 +184,18 @@ export function usePortfolio() {
     const newProj = { id, ...project };
     const updated = [...projects, newProj];
 
-    if (isFirebaseConnected && db) {
+    if (isSupabaseConnected && supabase) {
       try {
-        const writeResult = await withTimeout(setDoc(doc(db, PORTFOLIO_COLLECTION_NAMES[0], id), project));
+        const writeResult = await withTimeout(
+          Promise.resolve(
+            supabase.from(PORTFOLIO_TABLE_NAMES[0]).upsert({ id, ...project }, { onConflict: "id" }),
+          ),
+        );
         if (writeResult === null) {
-          console.warn("Firestore add timed out.");
+          console.warn("Supabase add timed out.");
         }
       } catch (error) {
-        console.error("Firestore add failed:", error);
+        console.error("Supabase add failed:", error);
       }
     }
 
@@ -179,15 +206,16 @@ export function usePortfolio() {
   const updateProject = async (project: Project) => {
     const updated = projects.map((p) => (p.id === project.id ? project : p));
 
-    if (isFirebaseConnected && db) {
+    if (isSupabaseConnected && supabase) {
       try {
-        const { id, ...data } = project;
-        const writeResult = await withTimeout(setDoc(doc(db, PORTFOLIO_COLLECTION_NAMES[0], id), data));
+        const writeResult = await withTimeout(
+          Promise.resolve(supabase.from(PORTFOLIO_TABLE_NAMES[0]).upsert(project, { onConflict: "id" })),
+        );
         if (writeResult === null) {
-          console.warn("Firestore update timed out.");
+          console.warn("Supabase update timed out.");
         }
       } catch (error) {
-        console.error("Firestore update failed:", error);
+        console.error("Supabase update failed:", error);
       }
     }
 
@@ -197,14 +225,16 @@ export function usePortfolio() {
   const deleteProject = async (id: string) => {
     const updated = projects.filter((p) => p.id !== id);
 
-    if (isFirebaseConnected && db) {
+    if (isSupabaseConnected && supabase) {
       try {
-        const writeResult = await withTimeout(deleteDoc(doc(db, PORTFOLIO_COLLECTION_NAMES[0], id)));
+        const writeResult = await withTimeout(
+          Promise.resolve(supabase.from(PORTFOLIO_TABLE_NAMES[0]).delete().eq("id", id)),
+        );
         if (writeResult === null) {
-          console.warn("Firestore delete timed out.");
+          console.warn("Supabase delete timed out.");
         }
       } catch (error) {
-        console.error("Firestore delete failed:", error);
+        console.error("Supabase delete failed:", error);
       }
     }
 
@@ -218,6 +248,6 @@ export function usePortfolio() {
     updateProject,
     deleteProject,
     refresh: loadProjects,
-    isFirebaseConnected,
+    isSupabaseConnected,
   };
 }

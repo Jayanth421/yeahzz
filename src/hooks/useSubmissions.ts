@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
-import { collection, deleteDoc, doc, getDocs, setDoc } from "firebase/firestore";
-import { db, INQUIRY_COLLECTION_NAMES, isFirebaseConnected } from "../lib/firebase";
+import { INQUIRY_TABLE_NAMES, isSupabaseConnected, supabase } from "../lib/supabase";
 
 export interface Submission {
   id: string;
@@ -16,7 +15,7 @@ export interface Submission {
 const STORAGE_KEY = "nexus_craft_submissions";
 const REQUEST_TIMEOUT_MS = 10000;
 
-const withTimeout = async <T,>(promise: Promise<T>, timeoutMs = REQUEST_TIMEOUT_MS) => {
+const withTimeout = async <T,>(promise: Promise<T>, timeoutMs = REQUEST_TIMEOUT_MS): Promise<T | null> => {
   let timeoutId: ReturnType<typeof setTimeout> | undefined;
 
   try {
@@ -75,35 +74,41 @@ export function useSubmissions(options: UseSubmissionsOptions = {}) {
   const loadSubmissions = async () => {
     setLoading(true);
 
-    if (isFirebaseConnected && db) {
-      const fireDb = db;
+    if (isSupabaseConnected && supabase) {
+      const client = supabase;
       try {
-        let firestoreItems: Submission[] = [];
+        let supabaseItems: Submission[] = [];
 
-        for (const collectionName of INQUIRY_COLLECTION_NAMES) {
-          const snapshot = await withTimeout(getDocs(collection(fireDb, collectionName)));
-          if (snapshot === null) {
-            console.warn(`Firestore read timed out for collection: ${collectionName}`);
+        for (const tableName of INQUIRY_TABLE_NAMES) {
+          const result = await withTimeout(Promise.resolve(client.from(tableName).select("*")));
+          if (result === null) {
+            console.warn(`Supabase read timed out for table: ${tableName}`);
             continue;
           }
-          const parsed = snapshot.docs.map((d) =>
-            normalizeSubmission(d.id, d.data() as Record<string, unknown>)
-          );
+          const { data, error } = result;
+          if (error) {
+            console.warn(`Supabase read failed for table: ${tableName}`, error.message);
+            continue;
+          }
+          const parsed = (data || []).map((row: Record<string, unknown>) => {
+            const payload = row as Record<string, unknown>;
+            return normalizeSubmission(String(payload.id || ""), payload);
+          });
 
           if (parsed.length > 0) {
-            firestoreItems = parsed;
+            supabaseItems = parsed;
             break;
           }
         }
 
-        if (firestoreItems.length > 0) {
-          setSubmissions(firestoreItems);
-          saveLocalSubmissions(firestoreItems);
+        if (supabaseItems.length > 0) {
+          setSubmissions(supabaseItems);
+          saveLocalSubmissions(supabaseItems);
           setLoading(false);
           return;
         }
       } catch (error) {
-        console.error("Failed loading submissions from Firestore:", error);
+        console.error("Failed loading submissions from Supabase:", error);
       }
     }
 
@@ -132,17 +137,16 @@ export function useSubmissions(options: UseSubmissionsOptions = {}) {
       status: "active",
     };
 
-    if (isFirebaseConnected && db) {
-      const fireDb = db;
+    if (isSupabaseConnected && supabase) {
       try {
         const writeResult = await withTimeout(
-          setDoc(doc(fireDb, INQUIRY_COLLECTION_NAMES[0], newItem.id), newItem),
+          Promise.resolve(supabase.from(INQUIRY_TABLE_NAMES[0]).upsert(newItem, { onConflict: "id" })),
         );
         if (writeResult === null) {
-          console.warn("Firestore submission write timed out.");
+          console.warn("Supabase submission write timed out.");
         }
       } catch (error) {
-        console.error("Failed writing submission to Firestore:", error);
+        console.error("Failed writing submission to Supabase:", error);
       }
     }
 
@@ -158,17 +162,18 @@ export function useSubmissions(options: UseSubmissionsOptions = {}) {
 
     const updatedItem = { ...current, status };
 
-    if (isFirebaseConnected && db) {
-      const fireDb = db;
+    if (isSupabaseConnected && supabase) {
       try {
         const writeResult = await withTimeout(
-          setDoc(doc(fireDb, INQUIRY_COLLECTION_NAMES[0], id), updatedItem),
+          Promise.resolve(
+            supabase.from(INQUIRY_TABLE_NAMES[0]).upsert(updatedItem, { onConflict: "id" }),
+          ),
         );
         if (writeResult === null) {
-          console.warn("Firestore submission status update timed out.");
+          console.warn("Supabase submission status update timed out.");
         }
       } catch (error) {
-        console.error("Failed updating submission status in Firestore:", error);
+        console.error("Failed updating submission status in Supabase:", error);
       }
     }
 
@@ -178,15 +183,16 @@ export function useSubmissions(options: UseSubmissionsOptions = {}) {
   };
 
   const removeSubmission = async (id: string) => {
-    if (isFirebaseConnected && db) {
-      const fireDb = db;
+    if (isSupabaseConnected && supabase) {
       try {
-        const writeResult = await withTimeout(deleteDoc(doc(fireDb, INQUIRY_COLLECTION_NAMES[0], id)));
+        const writeResult = await withTimeout(
+          Promise.resolve(supabase.from(INQUIRY_TABLE_NAMES[0]).delete().eq("id", id)),
+        );
         if (writeResult === null) {
-          console.warn("Firestore submission delete timed out.");
+          console.warn("Supabase submission delete timed out.");
         }
       } catch (error) {
-        console.error("Failed deleting submission from Firestore:", error);
+        console.error("Failed deleting submission from Supabase:", error);
       }
     }
 
@@ -196,19 +202,28 @@ export function useSubmissions(options: UseSubmissionsOptions = {}) {
   };
 
   const clearSubmissions = async () => {
-    if (isFirebaseConnected && db) {
-      const fireDb = db;
+    if (isSupabaseConnected && supabase) {
+      const client = supabase;
       try {
-        const snapshot = await withTimeout(getDocs(collection(fireDb, INQUIRY_COLLECTION_NAMES[0])));
-        if (snapshot === null) {
-          console.warn("Firestore clear submissions read timed out.");
+        const result = await withTimeout(
+          Promise.resolve(client.from(INQUIRY_TABLE_NAMES[0]).select("id")),
+        );
+        if (result === null) {
+          console.warn("Supabase clear submissions read timed out.");
           return;
         }
-        await Promise.all(
-          snapshot.docs.map((entry) => deleteDoc(doc(fireDb, INQUIRY_COLLECTION_NAMES[0], entry.id))),
-        );
+        const { data, error } = result;
+        if (error) {
+          console.error("Failed fetching submissions for clear:", error);
+        } else if (data?.length) {
+          await Promise.all(
+            data.map((entry: { id: string }) =>
+              client.from(INQUIRY_TABLE_NAMES[0]).delete().eq("id", entry.id),
+            ),
+          );
+        }
       } catch (error) {
-        console.error("Failed clearing Firestore submissions:", error);
+        console.error("Failed clearing Supabase submissions:", error);
       }
     }
 
