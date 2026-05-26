@@ -133,7 +133,7 @@ export default function ContactSection() {
           </div>
 
           {/* Right: Form */}
-          <div className="bg-white dark:bg-card border-3 border-black rounded-3xl p-8 shadow-[6px_6px_0px_0px_#000] relative z-10">
+          <div className="bg-red dark:bg-card border-3 border-black rounded-3xl p-8 shadow-[6px_6px_0px_0px_#000] relative z-10">
             {submitted ? (
               <div className="text-center py-12">
                 <div className="size-16 bg-neo-pink rounded-full border-2 border-black flex items-center justify-center mx-auto mb-6 shadow-[3px_3px_0px_0px_#000]">
@@ -148,7 +148,7 @@ export default function ContactSection() {
               </div>
             ) : (
               <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="grid sm:grid-cols-2 gap-4">
+                <div className="grid  sm:grid-cols-2 gap-4">
                   <div>
                     <label className="text-xs font-mono font-bold uppercase tracking-widest text-black mb-2 block">
                       Full Name
