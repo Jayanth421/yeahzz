@@ -61,7 +61,7 @@ function AdminDashboard() {
     addProject,
     updateProject,
     deleteProject,
-    isSupabaseConnected,
+    isAirtableConnected,
   } = usePortfolio();
 
   const {
@@ -368,17 +368,17 @@ function AdminDashboard() {
       {/* Main Content Area */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-28 pb-16 relative z-10">
         
-        {/* Supabase connectivity banner */}
+        {/* Airtable connectivity banner */}
         <div className={`mb-8 border-2 rounded-2xl p-4 flex items-center gap-3 shadow-[3px_3px_0px_0px_#000] ${
-          isSupabaseConnected 
-            ? "bg-emerald-950/20 border-emerald-500/40 text-emerald-400" 
+          isAirtableConnected
+            ? "bg-emerald-950/20 border-emerald-500/40 text-emerald-400"
             : "bg-amber-950/20 border-amber-500/40 text-amber-400"
         }`}>
           <AlertCircle className="size-5 flex-shrink-0" />
           <div className="text-xs font-mono font-semibold">
-            {isSupabaseConnected 
-              ? "Supabase is configured. Data sync works when required tables/policies exist." 
-              : "Supabase configuration not active. Running on Local Storage fallback. Updates are saved locally."}
+            {isAirtableConnected
+              ? "Airtable is configured. Data is synced to your base."
+              : "Airtable not configured. Running on Local Storage fallback — set NEXT_PUBLIC_AIRTABLE_API_KEY and NEXT_PUBLIC_AIRTABLE_BASE_ID in .env."}
           </div>
         </div>
 

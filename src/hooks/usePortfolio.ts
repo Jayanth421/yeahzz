@@ -1,8 +1,17 @@
 import { useState, useEffect } from "react";
-import { isSupabaseConnected, PORTFOLIO_TABLE_NAMES, supabase } from "../lib/supabase";
+import {
+  isAirtableConnected,
+  PORTFOLIO_TABLE,
+  listRecords,
+  createRecord,
+  updateRecord,
+  deleteRecord,
+} from "../lib/airtable";
 
 export interface Project {
   id: string;
+  /** Airtable record id */
+  _recordId?: string;
   title: string;
   category: string;
   image: string;
@@ -49,19 +58,57 @@ const DEFAULT_PROJECTS: Project[] = [
 ];
 
 const STORAGE_KEY = "nexus_craft_portfolio";
-const REQUEST_TIMEOUT_MS = 10000;
 
-const withTimeout = async <T,>(promise: Promise<T>, timeoutMs = REQUEST_TIMEOUT_MS): Promise<T | null> => {
-  let timeoutId: ReturnType<typeof setTimeout> | undefined;
+// ── Airtable field mapping ───────────────────────────────────────────────────
+
+type AirtableProjectFields = {
+  Title: string;
+  Category: string;
+  Image: string;
+  Tags: string; // comma-separated
+  WebsiteUrl: string;
+};
+
+const toProject = (rec: { id: string; fields: Partial<AirtableProjectFields> }): Project => ({
+  id: rec.id,
+  _recordId: rec.id,
+  title: rec.fields.Title ?? "",
+  category: rec.fields.Category ?? "Website",
+  image: rec.fields.Image ?? "src/assets/portfolio-fintech.jpg",
+  tags: rec.fields.Tags ? rec.fields.Tags.split(",").map((t) => t.trim()).filter(Boolean) : [],
+  websiteUrl: rec.fields.WebsiteUrl ?? undefined,
+});
+
+const toFields = (p: Omit<Project, "id" | "_recordId">): AirtableProjectFields => ({
+  Title: p.title,
+  Category: p.category,
+  Image: p.image,
+  Tags: p.tags.join(", "),
+  WebsiteUrl: p.websiteUrl ?? "",
+});
+
+// ── local helpers ────────────────────────────────────────────────────────────
+
+const loadLocal = (): Project[] => {
+  if (typeof window === "undefined") return DEFAULT_PROJECTS;
   try {
-    const timeoutPromise = new Promise<null>((resolve) => {
-      timeoutId = setTimeout(() => resolve(null), timeoutMs);
-    });
-    return await Promise.race([promise, timeoutPromise]);
-  } finally {
-    if (timeoutId) clearTimeout(timeoutId);
+    const raw = localStorage.getItem(STORAGE_KEY);
+    return raw ? (JSON.parse(raw) as Project[]) : DEFAULT_PROJECTS;
+  } catch {
+    return DEFAULT_PROJECTS;
   }
 };
+
+const saveLocal = (items: Project[]) => {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+  } catch {
+    /* ignore */
+  }
+};
+
+// ── hook ─────────────────────────────────────────────────────────────────────
 
 export function usePortfolio() {
   const [projects, setProjects] = useState<Project[]>([]);
@@ -69,176 +116,104 @@ export function usePortfolio() {
 
   const loadProjects = async () => {
     setLoading(true);
-    if (isSupabaseConnected && supabase) {
-      const client = supabase;
+
+    if (isAirtableConnected) {
       try {
-        let list: Project[] = [];
-        let activeTable = PORTFOLIO_TABLE_NAMES[0];
+        const records = await listRecords<AirtableProjectFields>(PORTFOLIO_TABLE);
+        const items = records.map(toProject);
 
-        for (const tableName of PORTFOLIO_TABLE_NAMES) {
-          const result = await withTimeout(Promise.resolve(client.from(tableName).select("*")));
-          if (result === null) {
-            console.warn(`Supabase read timed out for table: ${tableName}`);
-            continue;
-          }
-          const { data, error } = result;
-          if (error) {
-            console.warn(`Supabase read failed for table: ${tableName}`, error.message);
-            continue;
-          }
-
-          const parsed = (data || []).map((row: Record<string, unknown>) => {
-            const payload = row as Record<string, unknown>;
-            return {
-              id: String(payload.id || ""),
-              title: typeof payload.title === "string" ? payload.title : "",
-              category: typeof payload.category === "string" ? payload.category : "Website",
-              image: typeof payload.image === "string" ? payload.image : "src/assets/portfolio-fintech.jpg",
-              tags: Array.isArray(payload.tags)
-                ? payload.tags.filter((tag): tag is string => typeof tag === "string")
-                : [],
-              websiteUrl: typeof payload.websiteUrl === "string" ? payload.websiteUrl : undefined,
-            } as Project;
-          });
-
-          if (parsed.length > 0) {
-            list = parsed;
-            activeTable = tableName;
-            break;
-          }
+        if (items.length > 0) {
+          setProjects(items);
+          saveLocal(items);
+          setLoading(false);
+          return;
         }
 
-        if (list.length === 0) {
-          // If Supabase table is empty, seed with defaults
-          for (const proj of DEFAULT_PROJECTS) {
-            const writeResult = await withTimeout(
-              Promise.resolve(
-                supabase.from(activeTable).upsert(
-                {
-                  id: proj.id,
-                  title: proj.title,
-                  category: proj.category,
-                  image: proj.image,
-                  tags: proj.tags,
-                },
-                { onConflict: "id" },
-                ),
-              ),
-            );
-            if (writeResult === null) {
-              console.warn(`Supabase seed write timed out for project: ${proj.id}`);
-            }
-          }
-          setProjects(DEFAULT_PROJECTS);
-          if (typeof window !== "undefined") {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(DEFAULT_PROJECTS));
-          }
-        } else {
-          setProjects(list);
-          if (typeof window !== "undefined") {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+        // Table exists but is empty — seed with defaults
+        const seeded: Project[] = [];
+        for (const proj of DEFAULT_PROJECTS) {
+          try {
+            const rec = await createRecord<AirtableProjectFields>(PORTFOLIO_TABLE, toFields(proj));
+            seeded.push(toProject(rec));
+          } catch (seedErr) {
+            console.warn("Airtable seed failed for project:", proj.id, seedErr);
           }
         }
-      } catch (error) {
-        console.error("Failed to fetch from Supabase, falling back to local:", error);
-        loadLocalProjects();
-      } finally {
+        const list = seeded.length > 0 ? seeded : DEFAULT_PROJECTS;
+        setProjects(list);
+        saveLocal(list);
         setLoading(false);
+        return;
+      } catch (err) {
+        console.error("Airtable load failed, falling back to local:", err);
       }
-    } else {
-      loadLocalProjects();
-      setLoading(false);
     }
-  };
 
-  const loadLocalProjects = () => {
-    if (typeof window !== "undefined") {
-      try {
-        const stored = localStorage.getItem(STORAGE_KEY);
-        if (stored) {
-          setProjects(JSON.parse(stored));
-        } else {
-          localStorage.setItem(STORAGE_KEY, JSON.stringify(DEFAULT_PROJECTS));
-          setProjects(DEFAULT_PROJECTS);
-        }
-      } catch (error) {
-        console.error("Local storage read failed:", error);
-        setProjects(DEFAULT_PROJECTS);
-      }
-    }
+    const local = loadLocal();
+    setProjects(local);
+    setLoading(false);
   };
 
   useEffect(() => {
-    loadProjects();
+    void loadProjects();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const saveProjects = async (updatedList: Project[]) => {
-    setProjects(updatedList);
-    if (typeof window !== "undefined") {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedList));
-    }
-  };
-
-  const addProject = async (project: Omit<Project, "id">) => {
-    const id = Date.now().toString(36) + Math.random().toString(36).substring(2, 6);
-    const newProj = { id, ...project };
-    const updated = [...projects, newProj];
-
-    if (isSupabaseConnected && supabase) {
+  const addProject = async (project: Omit<Project, "id" | "_recordId">): Promise<Project> => {
+    if (isAirtableConnected) {
       try {
-        const writeResult = await withTimeout(
-          Promise.resolve(
-            supabase.from(PORTFOLIO_TABLE_NAMES[0]).upsert({ id, ...project }, { onConflict: "id" }),
-          ),
-        );
-        if (writeResult === null) {
-          console.warn("Supabase add timed out.");
-        }
-      } catch (error) {
-        console.error("Supabase add failed:", error);
+        const rec = await createRecord<AirtableProjectFields>(PORTFOLIO_TABLE, toFields(project));
+        const newProj = toProject(rec);
+        const updated = [...projects, newProj];
+        setProjects(updated);
+        saveLocal(updated);
+        return newProj;
+      } catch (err) {
+        console.error("Airtable add failed:", err);
       }
     }
 
-    await saveProjects(updated);
+    const newProj: Project = {
+      ...project,
+      id: Date.now().toString(36) + Math.random().toString(36).substring(2, 6),
+    };
+    const updated = [...projects, newProj];
+    setProjects(updated);
+    saveLocal(updated);
     return newProj;
   };
 
   const updateProject = async (project: Project) => {
-    const updated = projects.map((p) => (p.id === project.id ? project : p));
-
-    if (isSupabaseConnected && supabase) {
+    if (isAirtableConnected && project._recordId) {
       try {
-        const writeResult = await withTimeout(
-          Promise.resolve(supabase.from(PORTFOLIO_TABLE_NAMES[0]).upsert(project, { onConflict: "id" })),
+        await updateRecord<AirtableProjectFields>(
+          PORTFOLIO_TABLE,
+          project._recordId,
+          toFields(project)
         );
-        if (writeResult === null) {
-          console.warn("Supabase update timed out.");
-        }
-      } catch (error) {
-        console.error("Supabase update failed:", error);
+      } catch (err) {
+        console.error("Airtable update failed:", err);
       }
     }
 
-    await saveProjects(updated);
+    const updated = projects.map((p) => (p.id === project.id ? project : p));
+    setProjects(updated);
+    saveLocal(updated);
   };
 
   const deleteProject = async (id: string) => {
-    const updated = projects.filter((p) => p.id !== id);
-
-    if (isSupabaseConnected && supabase) {
+    const proj = projects.find((p) => p.id === id);
+    if (isAirtableConnected && proj?._recordId) {
       try {
-        const writeResult = await withTimeout(
-          Promise.resolve(supabase.from(PORTFOLIO_TABLE_NAMES[0]).delete().eq("id", id)),
-        );
-        if (writeResult === null) {
-          console.warn("Supabase delete timed out.");
-        }
-      } catch (error) {
-        console.error("Supabase delete failed:", error);
+        await deleteRecord(PORTFOLIO_TABLE, proj._recordId);
+      } catch (err) {
+        console.error("Airtable delete failed:", err);
       }
     }
 
-    await saveProjects(updated);
+    const updated = projects.filter((p) => p.id !== id);
+    setProjects(updated);
+    saveLocal(updated);
   };
 
   return {
@@ -248,6 +223,6 @@ export function usePortfolio() {
     updateProject,
     deleteProject,
     refresh: loadProjects,
-    isSupabaseConnected,
+    isAirtableConnected,
   };
 }

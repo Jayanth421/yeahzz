@@ -12,11 +12,12 @@ export default function ContactSection() {
     message: "",
   });
   const [submitted, setSubmitted] = useState(false);
+  const [clientCode, setClientCode] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    await addSubmission({
+    const result = await addSubmission({
       name: form.name,
       email: form.email,
       phone: form.phone,
@@ -24,6 +25,7 @@ export default function ContactSection() {
       message: form.message,
     });
 
+    setClientCode(result.clientCode ?? null);
     setSubmitted(true);
     setForm({
       name: "",
@@ -32,7 +34,10 @@ export default function ContactSection() {
       service: "",
       message: "",
     });
-    setTimeout(() => setSubmitted(false), 3000);
+    setTimeout(() => {
+      setSubmitted(false);
+      setClientCode(null);
+    }, 8000);
   };
 
   return (
@@ -122,16 +127,32 @@ export default function ContactSection() {
           {/* Right: Form */}
           <div className="bg-red dark:bg-card border-3 border-black rounded-3xl p-8 shadow-[6px_6px_0px_0px_#000] relative z-10">
             {submitted ? (
-              <div className="text-center py-12">
+              <div className="text-center py-10">
                 <div className="size-16 bg-neo-pink rounded-full border-2 border-black flex items-center justify-center mx-auto mb-6 shadow-[3px_3px_0px_0px_#000]">
                   <Send className="size-8 text-black" />
                 </div>
                 <h3 className="font-display text-2xl font-extrabold text-black dark:text-white mb-2">
                   Message Sent!
                 </h3>
-                <p className="text-muted-foreground font-mono text-xs">
+                <p className="text-muted-foreground font-mono text-xs mb-4">
                   We'll get back to you within 24 hours.
                 </p>
+                {clientCode && (
+                  <div className="mt-4 p-4 bg-black/10 border-2 border-black rounded-xl">
+                    <p className="text-[10px] font-mono font-bold uppercase tracking-widest text-muted-foreground mb-1">
+                      Your Client Access Code
+                    </p>
+                    <p className="font-mono text-2xl font-extrabold text-neo-violet tracking-widest">
+                      {clientCode}
+                    </p>
+                    <p className="text-[10px] font-mono text-muted-foreground mt-1">
+                      Save this — use it with your email to access the{" "}
+                      <a href="/client" className="underline text-neo-violet">
+                        Client Portal
+                      </a>
+                    </p>
+                  </div>
+                )}
               </div>
             ) : (
               <form onSubmit={handleSubmit} className="space-y-4">

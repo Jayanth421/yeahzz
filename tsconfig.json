@@ -21,6 +21,8 @@
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
   "exclude": [
     "node_modules",
+    "yeahzz",
+    "supabase",
     "src/routes",
     "src/router.tsx",
     "src/routeTree.gen.ts",

@@ -1,8 +1,17 @@
 import { useEffect, useState } from "react";
-import { INQUIRY_TABLE_NAMES, isSupabaseConnected, supabase } from "../lib/supabase";
+import {
+  isAirtableConnected,
+  SUBMISSIONS_TABLE,
+  listRecords,
+  createRecord,
+  updateRecord,
+  deleteRecord,
+} from "../lib/airtable";
 
 export interface Submission {
   id: string;
+  /** Airtable record id (undefined for local-only entries) */
+  _recordId?: string;
   name: string;
   email: string;
   phone: string;
@@ -10,57 +19,71 @@ export interface Submission {
   message: string;
   timestamp: string;
   status: "active" | "resolved";
+  /** Optional: client access code for the client portal */
+  clientCode?: string;
 }
 
 const STORAGE_KEY = "nexus_craft_submissions";
-const REQUEST_TIMEOUT_MS = 10000;
 
-const withTimeout = async <T,>(promise: Promise<T>, timeoutMs = REQUEST_TIMEOUT_MS): Promise<T | null> => {
-  let timeoutId: ReturnType<typeof setTimeout> | undefined;
+// ── local storage helpers ────────────────────────────────────────────────────
 
-  try {
-    const timeoutPromise = new Promise<null>((resolve) => {
-      timeoutId = setTimeout(() => resolve(null), timeoutMs);
-    });
-
-    return await Promise.race([promise, timeoutPromise]);
-  } finally {
-    if (timeoutId) clearTimeout(timeoutId);
-  }
-};
-
-const loadLocalSubmissions = (): Submission[] => {
+const loadLocal = (): Submission[] => {
   if (typeof window === "undefined") return [];
-
   try {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (!stored) return [];
-    return JSON.parse(stored) as Submission[];
-  } catch (error) {
-    console.error("Failed to parse local submissions:", error);
+    const raw = localStorage.getItem(STORAGE_KEY);
+    return raw ? (JSON.parse(raw) as Submission[]) : [];
+  } catch {
     return [];
   }
 };
 
-const saveLocalSubmissions = (items: Submission[]) => {
+const saveLocal = (items: Submission[]) => {
   if (typeof window === "undefined") return;
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
-  } catch (error) {
-    console.error("Failed to save local submissions:", error);
+  } catch {
+    /* ignore */
   }
 };
 
-const normalizeSubmission = (id: string, payload: Record<string, unknown>): Submission => ({
-  id,
-  name: typeof payload.name === "string" ? payload.name : "",
-  email: typeof payload.email === "string" ? payload.email : "",
-  phone: typeof payload.phone === "string" ? payload.phone : "",
-  service: typeof payload.service === "string" && payload.service ? payload.service : "web",
-  message: typeof payload.message === "string" ? payload.message : "",
-  timestamp: typeof payload.timestamp === "string" ? payload.timestamp : new Date().toISOString(),
-  status: payload.status === "resolved" ? "resolved" : "active",
+// ── Airtable field mapping ───────────────────────────────────────────────────
+
+type AirtableSubmissionFields = {
+  Name: string;
+  Email: string;
+  Phone: string;
+  Service: string;
+  Message: string;
+  Timestamp: string;
+  Status: string;
+  ClientCode: string;
+};
+
+const toSubmission = (rec: { id: string; fields: Partial<AirtableSubmissionFields> }): Submission => ({
+  id: rec.id,
+  _recordId: rec.id,
+  name: rec.fields.Name ?? "",
+  email: rec.fields.Email ?? "",
+  phone: rec.fields.Phone ?? "",
+  service: rec.fields.Service ?? "web",
+  message: rec.fields.Message ?? "",
+  timestamp: rec.fields.Timestamp ?? new Date().toISOString(),
+  status: rec.fields.Status === "resolved" ? "resolved" : "active",
+  clientCode: rec.fields.ClientCode ?? "",
 });
+
+const toFields = (s: Omit<Submission, "id" | "_recordId">): AirtableSubmissionFields => ({
+  Name: s.name,
+  Email: s.email,
+  Phone: s.phone,
+  Service: s.service || "web",
+  Message: s.message,
+  Timestamp: s.timestamp,
+  Status: s.status,
+  ClientCode: s.clientCode ?? "",
+});
+
+// ── hook ─────────────────────────────────────────────────────────────────────
 
 interface UseSubmissionsOptions {
   autoLoad?: boolean;
@@ -74,45 +97,20 @@ export function useSubmissions(options: UseSubmissionsOptions = {}) {
   const loadSubmissions = async () => {
     setLoading(true);
 
-    if (isSupabaseConnected && supabase) {
-      const client = supabase;
+    if (isAirtableConnected) {
       try {
-        let supabaseItems: Submission[] = [];
-
-        for (const tableName of INQUIRY_TABLE_NAMES) {
-          const result = await withTimeout(Promise.resolve(client.from(tableName).select("*")));
-          if (result === null) {
-            console.warn(`Supabase read timed out for table: ${tableName}`);
-            continue;
-          }
-          const { data, error } = result;
-          if (error) {
-            console.warn(`Supabase read failed for table: ${tableName}`, error.message);
-            continue;
-          }
-          const parsed = (data || []).map((row: Record<string, unknown>) => {
-            const payload = row as Record<string, unknown>;
-            return normalizeSubmission(String(payload.id || ""), payload);
-          });
-
-          if (parsed.length > 0) {
-            supabaseItems = parsed;
-            break;
-          }
-        }
-
-        if (supabaseItems.length > 0) {
-          setSubmissions(supabaseItems);
-          saveLocalSubmissions(supabaseItems);
-          setLoading(false);
-          return;
-        }
-      } catch (error) {
-        console.error("Failed loading submissions from Supabase:", error);
+        const records = await listRecords<AirtableSubmissionFields>(SUBMISSIONS_TABLE);
+        const items = records.map(toSubmission);
+        setSubmissions(items);
+        saveLocal(items);
+        setLoading(false);
+        return;
+      } catch (err) {
+        console.error("Airtable load failed, falling back to local storage:", err);
       }
     }
 
-    setSubmissions(loadLocalSubmissions());
+    setSubmissions(loadLocal());
     setLoading(false);
   };
 
@@ -121,114 +119,100 @@ export function useSubmissions(options: UseSubmissionsOptions = {}) {
       setLoading(false);
       return;
     }
-
     void loadSubmissions();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [autoLoad]);
 
-  const addSubmission = async (data: Omit<Submission, "id" | "timestamp" | "status">) => {
-    const newItem: Submission = {
-      id: Date.now().toString(36) + Math.random().toString(36).substring(2, 7),
-      name: data.name,
-      email: data.email,
-      phone: data.phone,
-      service: data.service || "web",
-      message: data.message,
+  const addSubmission = async (
+    data: Omit<Submission, "id" | "_recordId" | "timestamp" | "status">
+  ): Promise<Submission> => {
+    const base: Omit<Submission, "id" | "_recordId"> = {
+      ...data,
       timestamp: new Date().toISOString(),
       status: "active",
+      clientCode:
+        data.clientCode ??
+        Math.random().toString(36).substring(2, 8).toUpperCase(),
     };
 
-    if (isSupabaseConnected && supabase) {
+    if (isAirtableConnected) {
       try {
-        const writeResult = await withTimeout(
-          Promise.resolve(supabase.from(INQUIRY_TABLE_NAMES[0]).upsert(newItem, { onConflict: "id" })),
+        const rec = await createRecord<AirtableSubmissionFields>(
+          SUBMISSIONS_TABLE,
+          toFields(base)
         );
-        if (writeResult === null) {
-          console.warn("Supabase submission write timed out.");
-        }
-      } catch (error) {
-        console.error("Failed writing submission to Supabase:", error);
+        const newItem = toSubmission(rec);
+        const updated = [...submissions, newItem];
+        setSubmissions(updated);
+        saveLocal(updated);
+        return newItem;
+      } catch (err) {
+        console.error("Airtable create failed:", err);
       }
     }
 
+    // local fallback
+    const newItem: Submission = {
+      ...base,
+      id: Date.now().toString(36) + Math.random().toString(36).substring(2, 7),
+    };
     const updated = [...submissions, newItem];
     setSubmissions(updated);
-    saveLocalSubmissions(updated);
+    saveLocal(updated);
     return newItem;
   };
 
   const setSubmissionStatus = async (id: string, status: Submission["status"]) => {
-    const current = submissions.find((item) => item.id === id);
+    const current = submissions.find((s) => s.id === id);
     if (!current) return;
 
     const updatedItem = { ...current, status };
 
-    if (isSupabaseConnected && supabase) {
+    if (isAirtableConnected && current._recordId) {
       try {
-        const writeResult = await withTimeout(
-          Promise.resolve(
-            supabase.from(INQUIRY_TABLE_NAMES[0]).upsert(updatedItem, { onConflict: "id" }),
-          ),
-        );
-        if (writeResult === null) {
-          console.warn("Supabase submission status update timed out.");
-        }
-      } catch (error) {
-        console.error("Failed updating submission status in Supabase:", error);
+        await updateRecord<AirtableSubmissionFields>(SUBMISSIONS_TABLE, current._recordId, {
+          Status: status,
+        });
+      } catch (err) {
+        console.error("Airtable status update failed:", err);
       }
     }
 
-    const updated = submissions.map((item) => (item.id === id ? updatedItem : item));
+    const updated = submissions.map((s) => (s.id === id ? updatedItem : s));
     setSubmissions(updated);
-    saveLocalSubmissions(updated);
+    saveLocal(updated);
   };
 
   const removeSubmission = async (id: string) => {
-    if (isSupabaseConnected && supabase) {
+    const current = submissions.find((s) => s.id === id);
+
+    if (isAirtableConnected && current?._recordId) {
       try {
-        const writeResult = await withTimeout(
-          Promise.resolve(supabase.from(INQUIRY_TABLE_NAMES[0]).delete().eq("id", id)),
-        );
-        if (writeResult === null) {
-          console.warn("Supabase submission delete timed out.");
-        }
-      } catch (error) {
-        console.error("Failed deleting submission from Supabase:", error);
+        await deleteRecord(SUBMISSIONS_TABLE, current._recordId);
+      } catch (err) {
+        console.error("Airtable delete failed:", err);
       }
     }
 
-    const updated = submissions.filter((item) => item.id !== id);
+    const updated = submissions.filter((s) => s.id !== id);
     setSubmissions(updated);
-    saveLocalSubmissions(updated);
+    saveLocal(updated);
   };
 
   const clearSubmissions = async () => {
-    if (isSupabaseConnected && supabase) {
-      const client = supabase;
+    if (isAirtableConnected) {
       try {
-        const result = await withTimeout(
-          Promise.resolve(client.from(INQUIRY_TABLE_NAMES[0]).select("id")),
+        await Promise.all(
+          submissions
+            .filter((s) => s._recordId)
+            .map((s) => deleteRecord(SUBMISSIONS_TABLE, s._recordId!))
         );
-        if (result === null) {
-          console.warn("Supabase clear submissions read timed out.");
-          return;
-        }
-        const { data, error } = result;
-        if (error) {
-          console.error("Failed fetching submissions for clear:", error);
-        } else if (data?.length) {
-          await Promise.all(
-            data.map((entry: { id: string }) =>
-              client.from(INQUIRY_TABLE_NAMES[0]).delete().eq("id", entry.id),
-            ),
-          );
-        }
-      } catch (error) {
-        console.error("Failed clearing Supabase submissions:", error);
+      } catch (err) {
+        console.error("Airtable clear failed:", err);
       }
     }
-
     setSubmissions([]);
-    saveLocalSubmissions([]);
+    saveLocal([]);
   };
 
   return {
