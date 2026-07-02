@@ -1,17 +1,20 @@
 import { useEffect, useState } from "react";
 import {
-  isAirtableConnected,
-  SUBMISSIONS_TABLE,
-  listRecords,
-  createRecord,
-  updateRecord,
-  deleteRecord,
-} from "../lib/airtable";
+  isFirebaseConnected,
+  SUBMISSIONS_COLLECTION,
+  db,
+  collection,
+  getDocs,
+  addDoc,
+  updateDoc,
+  deleteDoc,
+  doc,
+  query,
+  orderBy,
+} from "../lib/firebase";
 
 export interface Submission {
   id: string;
-  /** Airtable record id (undefined for local-only entries) */
-  _recordId?: string;
   name: string;
   email: string;
   phone: string;
@@ -19,13 +22,13 @@ export interface Submission {
   message: string;
   timestamp: string;
   status: "active" | "resolved";
-  /** Optional: client access code for the client portal */
+  /** Generated at submission time — used for client portal login */
   clientCode?: string;
 }
 
 const STORAGE_KEY = "nexus_craft_submissions";
 
-// ── local storage helpers ────────────────────────────────────────────────────
+// ── local storage helpers ─────────────────────────────────────────────────────
 
 const loadLocal = (): Submission[] => {
   if (typeof window === "undefined") return [];
@@ -46,44 +49,7 @@ const saveLocal = (items: Submission[]) => {
   }
 };
 
-// ── Airtable field mapping ───────────────────────────────────────────────────
-
-type AirtableSubmissionFields = {
-  Name: string;
-  Email: string;
-  Phone: string;
-  Service: string;
-  Message: string;
-  Timestamp: string;
-  Status: string;
-  ClientCode: string;
-};
-
-const toSubmission = (rec: { id: string; fields: Partial<AirtableSubmissionFields> }): Submission => ({
-  id: rec.id,
-  _recordId: rec.id,
-  name: rec.fields.Name ?? "",
-  email: rec.fields.Email ?? "",
-  phone: rec.fields.Phone ?? "",
-  service: rec.fields.Service ?? "web",
-  message: rec.fields.Message ?? "",
-  timestamp: rec.fields.Timestamp ?? new Date().toISOString(),
-  status: rec.fields.Status === "resolved" ? "resolved" : "active",
-  clientCode: rec.fields.ClientCode ?? "",
-});
-
-const toFields = (s: Omit<Submission, "id" | "_recordId">): AirtableSubmissionFields => ({
-  Name: s.name,
-  Email: s.email,
-  Phone: s.phone,
-  Service: s.service || "web",
-  Message: s.message,
-  Timestamp: s.timestamp,
-  Status: s.status,
-  ClientCode: s.clientCode ?? "",
-});
-
-// ── hook ─────────────────────────────────────────────────────────────────────
+// ── hook ──────────────────────────────────────────────────────────────────────
 
 interface UseSubmissionsOptions {
   autoLoad?: boolean;
@@ -97,16 +63,20 @@ export function useSubmissions(options: UseSubmissionsOptions = {}) {
   const loadSubmissions = async () => {
     setLoading(true);
 
-    if (isAirtableConnected) {
+    if (isFirebaseConnected) {
       try {
-        const records = await listRecords<AirtableSubmissionFields>(SUBMISSIONS_TABLE);
-        const items = records.map(toSubmission);
+        const q = query(collection(db, SUBMISSIONS_COLLECTION), orderBy("timestamp", "desc"));
+        const snap = await getDocs(q);
+        const items: Submission[] = snap.docs.map((d) => ({
+          id: d.id,
+          ...(d.data() as Omit<Submission, "id">),
+        }));
         setSubmissions(items);
         saveLocal(items);
         setLoading(false);
         return;
       } catch (err) {
-        console.error("Airtable load failed, falling back to local storage:", err);
+        console.error("Firestore load submissions failed, falling back to local:", err);
       }
     }
 
@@ -120,34 +90,30 @@ export function useSubmissions(options: UseSubmissionsOptions = {}) {
       return;
     }
     void loadSubmissions();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [autoLoad]);
 
   const addSubmission = async (
-    data: Omit<Submission, "id" | "_recordId" | "timestamp" | "status">
+    data: Omit<Submission, "id" | "timestamp" | "status">
   ): Promise<Submission> => {
-    const base: Omit<Submission, "id" | "_recordId"> = {
+    const base: Omit<Submission, "id"> = {
       ...data,
       timestamp: new Date().toISOString(),
       status: "active",
       clientCode:
-        data.clientCode ??
-        Math.random().toString(36).substring(2, 8).toUpperCase(),
+        data.clientCode ?? Math.random().toString(36).substring(2, 8).toUpperCase(),
     };
 
-    if (isAirtableConnected) {
+    if (isFirebaseConnected) {
       try {
-        const rec = await createRecord<AirtableSubmissionFields>(
-          SUBMISSIONS_TABLE,
-          toFields(base)
-        );
-        const newItem = toSubmission(rec);
-        const updated = [...submissions, newItem];
+        const ref = await addDoc(collection(db, SUBMISSIONS_COLLECTION), base);
+        const newItem: Submission = { id: ref.id, ...base };
+        const updated = [newItem, ...submissions];
         setSubmissions(updated);
         saveLocal(updated);
         return newItem;
       } catch (err) {
-        console.error("Airtable create failed:", err);
+        console.error("Firestore add submission failed:", err);
       }
     }
 
@@ -156,7 +122,7 @@ export function useSubmissions(options: UseSubmissionsOptions = {}) {
       ...base,
       id: Date.now().toString(36) + Math.random().toString(36).substring(2, 7),
     };
-    const updated = [...submissions, newItem];
+    const updated = [newItem, ...submissions];
     setSubmissions(updated);
     saveLocal(updated);
     return newItem;
@@ -166,31 +132,25 @@ export function useSubmissions(options: UseSubmissionsOptions = {}) {
     const current = submissions.find((s) => s.id === id);
     if (!current) return;
 
-    const updatedItem = { ...current, status };
-
-    if (isAirtableConnected && current._recordId) {
+    if (isFirebaseConnected) {
       try {
-        await updateRecord<AirtableSubmissionFields>(SUBMISSIONS_TABLE, current._recordId, {
-          Status: status,
-        });
+        await updateDoc(doc(db, SUBMISSIONS_COLLECTION, id), { status });
       } catch (err) {
-        console.error("Airtable status update failed:", err);
+        console.error("Firestore status update failed:", err);
       }
     }
 
-    const updated = submissions.map((s) => (s.id === id ? updatedItem : s));
+    const updated = submissions.map((s) => (s.id === id ? { ...s, status } : s));
     setSubmissions(updated);
     saveLocal(updated);
   };
 
   const removeSubmission = async (id: string) => {
-    const current = submissions.find((s) => s.id === id);
-
-    if (isAirtableConnected && current?._recordId) {
+    if (isFirebaseConnected) {
       try {
-        await deleteRecord(SUBMISSIONS_TABLE, current._recordId);
+        await deleteDoc(doc(db, SUBMISSIONS_COLLECTION, id));
       } catch (err) {
-        console.error("Airtable delete failed:", err);
+        console.error("Firestore delete submission failed:", err);
       }
     }
 
@@ -200,15 +160,13 @@ export function useSubmissions(options: UseSubmissionsOptions = {}) {
   };
 
   const clearSubmissions = async () => {
-    if (isAirtableConnected) {
+    if (isFirebaseConnected) {
       try {
         await Promise.all(
-          submissions
-            .filter((s) => s._recordId)
-            .map((s) => deleteRecord(SUBMISSIONS_TABLE, s._recordId!))
+          submissions.map((s) => deleteDoc(doc(db, SUBMISSIONS_COLLECTION, s.id)))
         );
       } catch (err) {
-        console.error("Airtable clear failed:", err);
+        console.error("Firestore clear submissions failed:", err);
       }
     }
     setSubmissions([]);

@@ -1,17 +1,20 @@
 import { useState, useEffect } from "react";
 import {
-  isAirtableConnected,
-  PORTFOLIO_TABLE,
-  listRecords,
-  createRecord,
-  updateRecord,
-  deleteRecord,
-} from "../lib/airtable";
+  isFirebaseConnected,
+  PORTFOLIO_COLLECTION,
+  db,
+  collection,
+  getDocs,
+  addDoc,
+  updateDoc,
+  deleteDoc,
+  doc,
+  query,
+  orderBy,
+} from "../lib/firebase";
 
 export interface Project {
   id: string;
-  /** Airtable record id */
-  _recordId?: string;
   title: string;
   category: string;
   image: string;
@@ -59,35 +62,7 @@ const DEFAULT_PROJECTS: Project[] = [
 
 const STORAGE_KEY = "nexus_craft_portfolio";
 
-// ── Airtable field mapping ───────────────────────────────────────────────────
-
-type AirtableProjectFields = {
-  Title: string;
-  Category: string;
-  Image: string;
-  Tags: string; // comma-separated
-  WebsiteUrl: string;
-};
-
-const toProject = (rec: { id: string; fields: Partial<AirtableProjectFields> }): Project => ({
-  id: rec.id,
-  _recordId: rec.id,
-  title: rec.fields.Title ?? "",
-  category: rec.fields.Category ?? "Website",
-  image: rec.fields.Image ?? "src/assets/portfolio-fintech.jpg",
-  tags: rec.fields.Tags ? rec.fields.Tags.split(",").map((t) => t.trim()).filter(Boolean) : [],
-  websiteUrl: rec.fields.WebsiteUrl ?? undefined,
-});
-
-const toFields = (p: Omit<Project, "id" | "_recordId">): AirtableProjectFields => ({
-  Title: p.title,
-  Category: p.category,
-  Image: p.image,
-  Tags: p.tags.join(", "),
-  WebsiteUrl: p.websiteUrl ?? "",
-});
-
-// ── local helpers ────────────────────────────────────────────────────────────
+// ── local helpers ─────────────────────────────────────────────────────────────
 
 const loadLocal = (): Project[] => {
   if (typeof window === "undefined") return DEFAULT_PROJECTS;
@@ -108,7 +83,7 @@ const saveLocal = (items: Project[]) => {
   }
 };
 
-// ── hook ─────────────────────────────────────────────────────────────────────
+// ── hook ──────────────────────────────────────────────────────────────────────
 
 export function usePortfolio() {
   const [projects, setProjects] = useState<Project[]>([]);
@@ -117,10 +92,14 @@ export function usePortfolio() {
   const loadProjects = async () => {
     setLoading(true);
 
-    if (isAirtableConnected) {
+    if (isFirebaseConnected) {
       try {
-        const records = await listRecords<AirtableProjectFields>(PORTFOLIO_TABLE);
-        const items = records.map(toProject);
+        const q = query(collection(db, PORTFOLIO_COLLECTION), orderBy("title"));
+        const snap = await getDocs(q);
+        const items: Project[] = snap.docs.map((d) => ({
+          id: d.id,
+          ...(d.data() as Omit<Project, "id">),
+        }));
 
         if (items.length > 0) {
           setProjects(items);
@@ -129,14 +108,16 @@ export function usePortfolio() {
           return;
         }
 
-        // Table exists but is empty — seed with defaults
+        // Collection is empty — seed with defaults
         const seeded: Project[] = [];
         for (const proj of DEFAULT_PROJECTS) {
           try {
-            const rec = await createRecord<AirtableProjectFields>(PORTFOLIO_TABLE, toFields(proj));
-            seeded.push(toProject(rec));
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            const { id: _id, ...fields } = proj;
+            const ref = await addDoc(collection(db, PORTFOLIO_COLLECTION), fields);
+            seeded.push({ id: ref.id, ...fields });
           } catch (seedErr) {
-            console.warn("Airtable seed failed for project:", proj.id, seedErr);
+            console.warn("Firestore seed failed for project:", proj.id, seedErr);
           }
         }
         const list = seeded.length > 0 ? seeded : DEFAULT_PROJECTS;
@@ -145,7 +126,7 @@ export function usePortfolio() {
         setLoading(false);
         return;
       } catch (err) {
-        console.error("Airtable load failed, falling back to local:", err);
+        console.error("Firestore load projects failed, falling back to local:", err);
       }
     }
 
@@ -156,20 +137,20 @@ export function usePortfolio() {
 
   useEffect(() => {
     void loadProjects();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const addProject = async (project: Omit<Project, "id" | "_recordId">): Promise<Project> => {
-    if (isAirtableConnected) {
+  const addProject = async (project: Omit<Project, "id">): Promise<Project> => {
+    if (isFirebaseConnected) {
       try {
-        const rec = await createRecord<AirtableProjectFields>(PORTFOLIO_TABLE, toFields(project));
-        const newProj = toProject(rec);
+        const ref = await addDoc(collection(db, PORTFOLIO_COLLECTION), project);
+        const newProj: Project = { id: ref.id, ...project };
         const updated = [...projects, newProj];
         setProjects(updated);
         saveLocal(updated);
         return newProj;
       } catch (err) {
-        console.error("Airtable add failed:", err);
+        console.error("Firestore add project failed:", err);
       }
     }
 
@@ -184,15 +165,13 @@ export function usePortfolio() {
   };
 
   const updateProject = async (project: Project) => {
-    if (isAirtableConnected && project._recordId) {
+    if (isFirebaseConnected) {
       try {
-        await updateRecord<AirtableProjectFields>(
-          PORTFOLIO_TABLE,
-          project._recordId,
-          toFields(project)
-        );
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { id: _id, ...fields } = project;
+        await updateDoc(doc(db, PORTFOLIO_COLLECTION, project.id), fields);
       } catch (err) {
-        console.error("Airtable update failed:", err);
+        console.error("Firestore update project failed:", err);
       }
     }
 
@@ -202,12 +181,11 @@ export function usePortfolio() {
   };
 
   const deleteProject = async (id: string) => {
-    const proj = projects.find((p) => p.id === id);
-    if (isAirtableConnected && proj?._recordId) {
+    if (isFirebaseConnected) {
       try {
-        await deleteRecord(PORTFOLIO_TABLE, proj._recordId);
+        await deleteDoc(doc(db, PORTFOLIO_COLLECTION, id));
       } catch (err) {
-        console.error("Airtable delete failed:", err);
+        console.error("Firestore delete project failed:", err);
       }
     }
 
@@ -223,6 +201,6 @@ export function usePortfolio() {
     updateProject,
     deleteProject,
     refresh: loadProjects,
-    isAirtableConnected,
+    isFirebaseConnected,
   };
 }
